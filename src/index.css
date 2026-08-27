@@ -1,0 +1,82 @@
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&display=swap');
+@import "tailwindcss";
+
+@theme {
+  /* ✅ PALETA TIERRA Y SALVIA */
+  --color-fondo: #FFFFFF;
+  --color-blanco: #FFFBF7;
+
+  --color-primario: #7D9477;
+  --color-primario-claro: #B8C9B5;
+  --color-primario-oscuro: #5A6E55;
+
+  --color-secundario: #B8A08C;
+  --color-acento: #D4A574;
+
+  --color-texto: #423E37;
+  --color-texto-suave: #8A857D;
+  --color-borde: #E4DFD5;
+
+  /* ✅ FUENTE CAMBIADA A MONTSERRAT */
+  --font-sans: 'Montserrat', sans-serif;
+
+  --radius-xl: 1rem;
+  --radius-2xl: 1.5rem;
+  --radius-3xl: 2rem;
+}
+
+:root {
+  font-family: 'Montserrat', sans-serif;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+}
+
+/* ⚠️ ELIMINADO: * { margin:0; padding:0; } — NO FORZÁ ESTO porque te bloquea los márgenes que pongas en cada componente */
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  min-width: 320px;
+  min-height: 100vh;
+  background: var(--color-fondo);
+  color: var(--color-texto);
+  /* ✅ No forzás márgenes ni padding acá → cada componente decide el suyo */
+}
+
+button,
+input,
+textarea,
+select {
+  font-family: inherit;
+}
+
+button {
+  cursor: pointer;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+img {
+  max-width: 100%;
+  display: block;
+}
+
+/* 🔹 Clases reutilizables */
+@layer utilities {
+  .btn-primario {
+    @apply bg-primario text-white font-medium py-3 px-5 rounded-xl transition-all hover:bg-primario-oscuro shadow-md;
+  }
+  .btn-secundario {
+    @apply bg-primario-claro/50 text-texto font-medium py-3 px-5 rounded-xl transition-all hover:bg-primario-claro;
+  }
+  .tarjeta {
+    @apply bg-blanco rounded-3xl shadow-md overflow-hidden border border-borde;
+  }
+  .titulo-seccion {
+    @apply text-2xl text-center text-texto mb-6;
+  }
+}
