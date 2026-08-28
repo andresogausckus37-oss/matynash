@@ -2,16 +2,18 @@ import { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { useCarrito } from "../context/CarritoContext";
 import {
-  Home,
-  ShoppingBag,
-  Heart,
   Menu,
   X,
   ShoppingCart,
+  Home,
+  Heart,
+  UserRound,
+  MessageCircle,
 } from "lucide-react";
 
 export default function Navbar() {
   const [menuAbierto, setMenuAbierto] = useState(false);
+
   const location = useLocation();
   const { carrito } = useCarrito();
 
@@ -22,229 +24,323 @@ export default function Navbar() {
 
   const cerrarMenu = () => setMenuAbierto(false);
 
-  // Rutas activas
   const esInicio = location.pathname === "/";
-  const esTienda = location.pathname.startsWith("/tienda");
   const esServicios = location.pathname.startsWith("/servicios");
 
-  // Color salvia para enlace activo
-  const colorActivo = "text-primario font-semibold";
-  const colorInactivo = "text-texto-suave hover:text-primario";
-  const bordeActivo = "bg-primario";
+  const enlaces = [
+    {
+      nombre: "Inicio",
+      ruta: "/",
+      icono: Home,
+      activo: esInicio,
+    },
+    {
+      nombre: "Servicios",
+      ruta: "/servicios",
+      icono: Heart,
+      activo: esServicios,
+    },
+
+    // FUTUROS ENLACES
+    // {
+    //   nombre: "Quién soy",
+    //   ruta: "/quien-soy",
+    //   icono: UserRound,
+    //   activo: location.pathname === "/quien-soy",
+    // },
+    // {
+    //   nombre: "Contacto",
+    //   ruta: "/contacto",
+    //   icono: MessageCircle,
+    //   activo: location.pathname === "/contacto",
+    // },
+  ];
 
   return (
     <header className="sticky top-0 z-50 w-full">
-      <nav className="bg-blanco/95 backdrop-blur-md border-b border-borde shadow-suave">
-        <div className="max-w-7xl mx-auto px-6 sm:px-8 lg:px-10">
-          <div className="h-[72px] flex items-center justify-between">
+      <nav
+        className="
+          relative
+          w-full
+          bg-white
+          border-b
+          border-borde
+          shadow-sm
+        "
+      >
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="relative h-[68px] sm:h-[72px] flex items-center justify-between">
 
-            {/* LOGO */}
+            {/* =========================
+                LOGO
+            ========================== */}
             <Link
               to="/"
               onClick={cerrarMenu}
-              className="flex items-center shrink-0"
-              aria-label="Inicio"
+              aria-label="Ir al inicio"
+              className="
+                relative
+                z-10
+                flex
+                items-center
+                shrink-0
+                group
+              "
             >
               <img
-                src="https://i.postimg.cc/vHBRjNV3/IMG-20260827-WA6620.jpg"
-                alt="Servicios Holísticos"
+                src="https://i.postimg.cc/wj8FgMBt/IMG-20260827-WA0021.jpg"
+                alt="Maty Nash"
                 className="
-                  h-14 w-14
-                  sm:h-14 sm:w-14
+                  w-12
+                  h-12
+                  sm:w-12
+                  sm:h-12
                   rounded-full
                   object-cover
+                  transition-transform
+                  duration-300
+                  ease-out
+                  group-hover:scale-105
+                  group-active:scale-95
                 "
               />
             </Link>
 
-            {/* NAVEGACIÓN DESKTOP */}
-            <div className="hidden md:flex items-center h-full gap-2">
+            {/* =========================
+                FRASE CENTRAL
+            ========================== */}
+            <Link
+              to="/"
+              onClick={cerrarMenu}
+              className="
+                absolute
+                left-2/5
+                -translate-x-1/2
+                whitespace-nowrap
+                text-center
+                text-texto
+                text-[13px]
+                sm:text-sm
+                md:text-base
+                tracking-wide
+                transition-all
+                duration-300
+                hover:text-primario
+              "
+            >
+              Tu coach de la energía
+            </Link>
 
-              <Link
-                to="/"
-                className={`
-                  relative h-full px-5
-                  flex items-center justify-center gap-2
-                  text-sm transition-colors duration-200
-                  ${esInicio ? colorActivo : colorInactivo}
-                `}
-              >
-                <Home size={18} strokeWidth={1.8} />
-                <span>Inicio</span>
-                {esInicio && (
-                  <span className={`absolute bottom-0 left-5 right-5 h-[2px] ${bordeActivo} rounded-full`} />
-                )}
-              </Link>
+            {/* =========================
+                ACCIONES
+            ========================== */}
+            <div className="relative z-10 flex items-center gap-1 sm:gap-2">
 
-              <Link
-                to="/servicios"
-                className={`
-                  relative h-full px-5
-                  flex items-center justify-center gap-2
-                  text-sm transition-colors duration-200
-                  ${esServicios ? colorActivo : colorInactivo}
-                `}
-              >
-                <Heart size={18} strokeWidth={1.8} />
-                <span>Servicios</span>
-                {esServicios && (
-                  <span className={`absolute bottom-0 left-5 right-5 h-[2px] ${bordeActivo} rounded-full`} />
-                )}
-              </Link>
-
-              <Link
-                to="/tienda"
-                className={`
-                  relative h-full px-5
-                  flex items-center justify-center gap-2
-                  text-sm transition-colors duration-200
-                  ${esTienda ? colorActivo : colorInactivo}
-                `}
-              >
-                <ShoppingBag size={18} strokeWidth={1.8} />
-                <span>Tienda</span>
-                {esTienda && (
-                  <span className={`absolute bottom-0 left-5 right-5 h-[2px] ${bordeActivo} rounded-full`} />
-                )}
-              </Link>
-            </div>
-
-            {/* ACCIONES */}
-            <div className="flex items-center gap-2">
-
-              {/* ✅ CARRITO — BADGE SIEMPRE VISIBLE */}
+              {/* CARRITO */}
               <Link
                 to="/checkout"
+                aria-label={`Carrito (${totalItems} productos)`}
                 className="
                   relative
-                  w-11 h-11
-                  flex items-center justify-center
+                  flex
+                  items-center
+                  justify-center
+                  w-10
+                  h-10
+                  sm:w-11
+                  sm:h-11
                   rounded-full
                   text-texto
+                  transition-all
+                  duration-200
                   hover:bg-primario-claro/30
                   hover:text-primario
-                  transition-all duration-200
+                  active:scale-90
                 "
-                aria-label="Carrito"
               >
                 <ShoppingCart
-                  size={21}
-                  strokeWidth={1.8}
+                  size={20}
+                  strokeWidth={1.7}
+                  className="transition-transform duration-200"
                 />
 
-                {/* ✅ BADGE VISIBLE SIEMPRE — aunque sea 0 */}
-                <span
-                  className="
-                    absolute
-                    top-0
-                    right-0
-                    min-w-[18px]
-                    h-[18px]
-                    px-1
-                    rounded-full
-                    bg-primario
-                    text-white
-                    text-[10px]
-                    font-semibold
-                    flex items-center justify-center
-                    border-2 border-blanco
-                  "
-                >
-                  {totalItems > 99 ? "99+" : totalItems}
-                </span>
+                {/* BADGE */}
+                {totalItems > 0 && (
+                  <span
+                    className="
+                      absolute
+                      -top-0.5
+                      -right-0.5
+                      min-w-[17px]
+                      h-[17px]
+                      px-1
+                      rounded-full
+                      bg-primario
+                      text-white
+                      text-[9px]
+                      font-medium
+                      flex
+                      items-center
+                      justify-center
+                      border-2
+                      border-white
+                      animate-[pulse_2s_ease-in-out_infinite]
+                    "
+                  >
+                    {totalItems > 99 ? "99+" : totalItems}
+                  </span>
+                )}
               </Link>
 
-              {/* MENÚ MÓVIL */}
+              {/* HAMBURGUESA */}
               <button
                 type="button"
-                onClick={() => setMenuAbierto(!menuAbierto)}
+                onClick={() => setMenuAbierto((estado) => !estado)}
+                aria-label={
+                  menuAbierto ? "Cerrar menú" : "Abrir menú"
+                }
+                aria-expanded={menuAbierto}
                 className="
-                  md:hidden
-                  w-11 h-11
-                  flex items-center justify-center
+                  flex
+                  items-center
+                  justify-center
+                  w-10
+                  h-10
+                  sm:w-11
+                  sm:h-11
                   rounded-full
                   text-texto
+                  transition-all
+                  duration-200
                   hover:bg-primario-claro/30
                   hover:text-primario
-                  transition-all duration-200
+                  active:scale-90
                 "
-                aria-label={menuAbierto ? "Cerrar menú" : "Abrir menú"}
-                aria-expanded={menuAbierto}
               >
-                {menuAbierto ? (
-                  <X size={23} strokeWidth={1.8} />
-                ) : (
-                  <Menu size={23} strokeWidth={1.8} />
-                )}
+                <span
+                  className="
+                    transition-all
+                    duration-300
+                    ease-out
+                  "
+                >
+                  {menuAbierto ? (
+                    <X
+                      size={23}
+                      strokeWidth={1.7}
+                      className="rotate-0"
+                    />
+                  ) : (
+                    <Menu
+                      size={23}
+                      strokeWidth={1.7}
+                    />
+                  )}
+                </span>
               </button>
             </div>
           </div>
         </div>
 
-        {/* MENÚ MÓVIL */}
+        {/* =========================
+            MENÚ DESPLEGABLE
+        ========================== */}
         <div
           className={`
-            md:hidden
+            absolute
+            top-full
+            left-0
+            right-0
             overflow-hidden
-            transition-all duration-300
-            ${menuAbierto ? "max-h-[300px] opacity-100" : "max-h-0 opacity-0"}
+            bg-white
+            border-b
+            border-borde
+            shadow-lg
+            transition-all
+            duration-300
+            ease-out
+            ${
+              menuAbierto
+                ? "max-h-[500px] opacity-100 visible"
+                : "max-h-0 opacity-0 invisible"
+            }
           `}
         >
-          <div className="border-t border-borde bg-blanco px-6 py-3">
-            <div className="flex flex-col">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 sm:py-4">
 
-              {/* INICIO — Salvia activo */}
-              <Link
-                to="/"
-                onClick={cerrarMenu}
-                className={`
-                  min-h-[58px]
-                  flex items-center justify-center
-                  gap-3
-                  text-sm
-                  border-b border-borde
-                  transition-colors duration-200
-                  ${esInicio ? colorActivo : colorInactivo}
-                `}
-              >
-                <Home size={19} strokeWidth={1.8} />
-                <span>Inicio</span>
-              </Link>
+            <div className="max-w-md ml-auto">
 
-              {/* SERVICIOS — Salvia activo */}
-              <Link
-                to="/servicios"
-                onClick={cerrarMenu}
-                className={`
-                  min-h-[58px]
-                  flex items-center justify-center
-                  gap-3
-                  text-sm
-                  border-b border-borde
-                  transition-colors duration-200
-                  ${esServicios ? colorActivo : colorInactivo}
-                `}
-              >
-                <Heart size={19} strokeWidth={1.8} />
-                <span>Servicios</span>
-              </Link>
+              {enlaces.map((enlace, index) => {
+                const Icono = enlace.icono;
 
-              {/* TIENDA — Salvia activo */}
-              <Link
-                to="/tienda"
-                onClick={cerrarMenu}
-                className={`
-                  min-h-[58px]
-                  flex items-center justify-center
-                  gap-3
-                  text-sm
-                  transition-colors duration-200
-                  ${esTienda ? colorActivo : colorInactivo}
-                `}
-              >
-                <ShoppingBag size={19} strokeWidth={1.8} />
-                <span>Tienda</span>
-              </Link>
+                return (
+                  <Link
+                    key={enlace.ruta}
+                    to={enlace.ruta}
+                    onClick={cerrarMenu}
+                    className={`
+                      group
+                      flex
+                      items-center
+                      gap-4
+                      w-full
+                      min-h-[56px]
+                      sm:min-h-[60px]
+                      px-4
+                      rounded-xl
+                      transition-all
+                      duration-200
+                      ${
+                        enlace.activo
+                          ? "bg-primario-claro/20 text-primario"
+                          : "text-texto-suave hover:bg-primario-claro/10 hover:text-primario"
+                      }
+                    `}
+                    style={{
+                      transitionDelay: menuAbierto
+                        ? `${index * 40}ms`
+                        : "0ms",
+                    }}
+                  >
+                    <span
+                      className="
+                        flex
+                        items-center
+                        justify-center
+                        w-9
+                        h-9
+                        rounded-full
+                        transition-all
+                        duration-200
+                        group-hover:scale-105
+                      "
+                    >
+                      <Icono
+                        size={20}
+                        strokeWidth={1.7}
+                      />
+                    </span>
+
+                    <span className="text-sm sm:text-base">
+                      {enlace.nombre}
+                    </span>
+
+                    <span
+                      className="
+                        ml-auto
+                        text-lg
+                        opacity-40
+                        transition-all
+                        duration-200
+                        group-hover:translate-x-1
+                        group-hover:opacity-100
+                      "
+                    >
+                      →
+                    </span>
+                  </Link>
+                );
+              })}
 
             </div>
           </div>

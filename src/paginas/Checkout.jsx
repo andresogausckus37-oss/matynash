@@ -2,218 +2,259 @@ import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useCarrito } from '../context/CarritoContext';
 import { CONFIG } from '../datos/servicios';
-import { ChevronLeft, Trash2, CreditCard, Banknote, Building2, CheckCircle2 } from 'lucide-react';
+import { ChevronLeft, CreditCard, CheckCircle2, X, HelpCircle } from 'lucide-react';
 
 export default function Checkout() {
-  const { carrito, eliminarDelCarrito, cambiarCantidad, vaciarCarrito, subtotal, total } = useCarrito();
+  const { carrito, eliminarDelCarrito, vaciarCarrito, total } = useCarrito();
   const navigate = useNavigate();
   const [metodoPago, setMetodoPago] = useState('');
-  const [pasoConfirmacion, setPasoConfirmacion] = useState(false);
-  const [datosEnvio, setDatosEnvio] = useState({
-    nombre: '',
-    apellido: '',
-    direccion: '',
-    localidad: '',
-    provincia: '',
-    telefono: '',
-    email: ''
-  });
+  const [mostrarModalPayPal, setMostrarModalPayPal] = useState(false);
+  const [yaPago, setYaPago] = useState(false);
 
-  // Si carrito vacío → mensaje
-  if (carrito.length === 0 && !pasoConfirmacion) {
+  // 🛒 Carrito vacío
+  if (carrito.length === 0) {
     return (
       <div className="max-w-2xl mx-auto px-4 py-16 text-center">
-        <h2 className="text-2xl font-bold mb-4">Tu carrito está vacío</h2>
-        <p className="text-gray-600 mb-8">Agregá productos para continuar con la compra</p>
-        <Link to="/tienda" className="bg-emerald-600 text-white px-6 py-3 rounded-xl font-medium hover:bg-emerald-700 transition">
-          Ir a la Tienda
+        <h2 className="text-2xl font-bold mb-4 text-texto">Tu carrito está vacío</h2>
+        <p className="text-texto-suave mb-8">Agregá un servicio para continuar</p>
+        <Link to="/" className="bg-primario hover:bg-primario-oscuro text-white px-6 py-3 rounded-md font-medium transition-colors">
+          Volver al inicio
         </Link>
       </div>
     );
   }
 
-  // Confirmación final
-  if (pasoConfirmacion) {
-    return (
-      <div className="max-w-2xl mx-auto px-4 py-16 text-center">
-        <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
-          <CheckCircle2 size={48} className="text-green-600" />
-        </div>
-        <h2 className="text-3xl font-bold mb-4">¡Compra confirmada! 🎉</h2>
-        <p className="text-gray-600 mb-2">Te enviamos los detalles a tu correo</p>
-        <p className="text-sm text-gray-500 mb-8">Gracias por tu compra ✨</p>
-        <button 
-          onClick={() => { vaciarCarrito(); navigate('/'); }}
-          className="bg-emerald-600 text-white px-6 py-3 rounded-xl font-medium hover:bg-emerald-700 transition"
-        >
-          Volver al inicio
-        </button>
-      </div>
-    );
-  }
+  // 💬 Generar mensaje de WhatsApp con el pedido
+  const generarMensajeWhatsApp = () => {
+    const items = carrito.map(item => 
+      `- ${item.titulo} — $${item.precioARS.toLocaleString('es-AR')} ARS`
+    ).join('\n');
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    if (!metodoPago) return alert('Seleccioná un método de pago');
-    setPasoConfirmacion(true);
+    return encodeURIComponent(`Hola Maty! 👋
+
+Vengo de matynash.com y quiero reservar este servicio:
+
+📋 Pedido:
+${items}
+
+💰 Total: $${total.toLocaleString('es-AR')} ARS
+💳 Método de pago: ${metodoPago === 'paypal' ? 'PayPal' : 'Pago por WhatsApp — 3 cuotas sin interés'}
+
+¡Gracias! 💚`);
   };
 
+  const whatsappLink = `https://wa.me/${CONFIG.terapeuta.whatsapp}?text=${generarMensajeWhatsApp()}`;
+
+  // 📦 Datos del servicio para mostrar en modal
+  const precioUSD = carrito[0]?.precioUSD || 0;
+  const correoPayPal = "TU_CORREO_PAYPAL@EMAIL.COM"; // ✅ REEMPLAZÁ CON TU CORREO
+
   return (
-    <div className="max-w-4xl mx-auto px-4 py-6">
-      {/* Volver */}
-      <Link to="/tienda" className="flex items-center gap-1 text-emerald-700 mb-6">
-        <ChevronLeft size={18} /> Volver a la tienda
+    <div className="max-w-3xl mx-auto px-4 py-6">
+      <Link to="/servicios" className="flex items-center gap-1 text-primario mb-6">
+        <ChevronLeft size={18} /> Volver a Servicios
       </Link>
 
-      <h1 className="text-3xl font-bold mb-8 text-center">Finalizar compra</h1>
+      <h1 className="text-3xl font-bold mb-8 text-center text-texto">Finalizar reserva</h1>
 
-      <div className="grid md:grid-cols-3 gap-8">
-        {/* 📦 Resumen del carrito */}
-        <div className="md:col-span-2 space-y-6">
-          <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-lg p-6">
-            <h2 className="text-xl font-semibold mb-4">Tu pedido</h2>
-            
-            {carrito.map(item => (
-              <div key={item.id} className="flex gap-4 py-4 border-b dark:border-gray-800 last:border-0">
-                <img src={item.imagenes[0]} alt={item.titulo} className="w-20 h-20 rounded-lg object-cover" />
-                <div className="flex-1">
-                  <h3 className="font-semibold">{item.titulo}</h3>
-                  <p className="text-sm text-gray-500">SKU: {item.sku}</p>
-                  <p className="font-bold text-emerald-700">${item.precioARS.toLocaleString()} ARS</p>
-                  
-                  <div className="flex items-center gap-3 mt-2">
-                    <button 
-                      onClick={() => cambiarCantidad(item.id, item.cantidad - 1)}
-                      className="w-8 h-8 rounded-full bg-stone-100 dark:bg-gray-800 flex items-center justify-center hover:bg-stone-200 dark:hover:bg-gray-700"
-                    >−</button>
-                    <span className="font-medium">{item.cantidad}</span>
-                    <button 
-                      onClick={() => cambiarCantidad(item.id, item.cantidad + 1)}
-                      className="w-8 h-8 rounded-full bg-stone-100 dark:bg-gray-800 flex items-center justify-center hover:bg-stone-200 dark:hover:bg-gray-700"
-                    >+</button>
-                    <button 
-                      onClick={() => eliminarDelCarrito(item.id)}
-                      className="ml-auto text-red-500 hover:text-red-700"
-                    >
-                      <Trash2 size={18} />
-                    </button>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-
-          {/* 📍 Datos de envío */}
-          <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-lg p-6">
-            <h2 className="text-xl font-semibold mb-4">Datos de envío</h2>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <input
-                type="text" placeholder="Nombre *" required
-                value={datosEnvio.nombre}
-                onChange={(e) => setDatosEnvio({...datosEnvio, nombre: e.target.value})}
-                className="px-4 py-3 rounded-xl border dark:border-gray-700 bg-transparent focus:outline-none focus:ring-2 focus:ring-emerald-500"
-              />
-              <input
-                type="text" placeholder="Apellido *" required
-                value={datosEnvio.apellido}
-                onChange={(e) => setDatosEnvio({...datosEnvio, apellido: e.target.value})}
-                className="px-4 py-3 rounded-xl border dark:border-gray-700 bg-transparent focus:outline-none focus:ring-2 focus:ring-emerald-500"
-              />
-              <input
-                type="text" placeholder="Dirección *" required
-                className="sm:col-span-2 px-4 py-3 rounded-xl border dark:border-gray-700 bg-transparent focus:outline-none focus:ring-2 focus:ring-emerald-500"
-                value={datosEnvio.direccion}
-                onChange={(e) => setDatosEnvio({...datosEnvio, direccion: e.target.value})}
-              />
-              <input
-                type="text" placeholder="Localidad *" required
-                value={datosEnvio.localidad}
-                onChange={(e) => setDatosEnvio({...datosEnvio, localidad: e.target.value})}
-                className="px-4 py-3 rounded-xl border dark:border-gray-700 bg-transparent focus:outline-none focus:ring-2 focus:ring-emerald-500"
-              />
-              <input
-                type="text" placeholder="Provincia *" required
-                value={datosEnvio.provincia}
-                onChange={(e) => setDatosEnvio({...datosEnvio, provincia: e.target.value})}
-                className="px-4 py-3 rounded-xl border dark:border-gray-700 bg-transparent focus:outline-none focus:ring-2 focus:ring-emerald-500"
-              />
-              <input
-                type="tel" placeholder="Teléfono *" required
-                value={datosEnvio.telefono}
-                onChange={(e) => setDatosEnvio({...datosEnvio, telefono: e.target.value})}
-                className="px-4 py-3 rounded-xl border dark:border-gray-700 bg-transparent focus:outline-none focus:ring-2 focus:ring-emerald-500"
-              />
-              <input
-                type="email" placeholder="Email *" required
-                className="sm:col-span-2 px-4 py-3 rounded-xl border dark:border-gray-700 bg-transparent focus:outline-none focus:ring-2 focus:ring-emerald-500"
-                value={datosEnvio.email}
-                onChange={(e) => setDatosEnvio({...datosEnvio, email: e.target.value})}
-              />
+      {/* 📋 RESUMEN DEL PEDIDO */}
+      <div className="bg-white border border-borde rounded-md shadow-suave p-6 mb-8">
+        <h2 className="text-xl font-semibold mb-4 text-texto">Tu servicio</h2>
+        {carrito.map(item => (
+          <div key={item.id} className="flex gap-4 py-4 border-b border-borde last:border-0 items-center">
+            <img 
+              src={item.imagenes[0]} 
+              alt={item.titulo} 
+              className="w-20 h-20 rounded-md object-cover" 
+            />
+            <div className="flex-1">
+              <h3 className="font-semibold text-texto">{item.titulo}</h3>
+              <p className="font-bold text-primario mt-1">${item.precioARS.toLocaleString('es-AR')} ARS</p>
+              {item.precioUSD && <p className="text-sm text-texto-suave">${item.precioUSD} USD</p>}
             </div>
-          </div>
-
-          {/* 💳 Métodos de pago */}
-          <form onSubmit={handleSubmit} className="bg-white dark:bg-gray-900 rounded-2xl shadow-lg p-6">
-            <h2 className="text-xl font-semibold mb-4">Método de pago</h2>
-            <div className="space-y-3">
-              <label className={`flex items-center gap-3 p-4 rounded-xl border cursor-pointer transition ${metodoPago === 'mercado-pago' ? 'border-emerald-500 bg-emerald-50 dark:bg-emerald-950/30' : 'dark:border-gray-700'}`}>
-                <input type="radio" name="pago" value="mercado-pago" checked={metodoPago === 'mercado-pago'} onChange={() => setMetodoPago('mercado-pago')} className="accent-emerald-600" />
-                <CreditCard size={22} className="text-blue-600" />
-                <div>
-                  <p className="font-medium">Mercado Pago</p>
-                  <p className="text-sm text-gray-500">Hasta 3 cuotas sin interés 💳</p>
-                </div>
-              </label>
-
-              <label className={`flex items-center gap-3 p-4 rounded-xl border cursor-pointer transition ${metodoPago === 'efectivo' ? 'border-emerald-500 bg-emerald-50 dark:bg-emerald-950/30' : 'dark:border-gray-700'}`}>
-                <input type="radio" name="pago" value="efectivo" checked={metodoPago === 'efectivo'} onChange={() => setMetodoPago('efectivo')} className="accent-emerald-600" />
-                <Banknote size={22} className="text-green-600" />
-                <div>
-                  <p className="font-medium">Efectivo / Pago Fácil</p>
-                  <p className="text-sm text-gray-500">Generá código de pago 💵</p>
-                </div>
-              </label>
-
-              <label className={`flex items-center gap-3 p-4 rounded-xl border cursor-pointer transition ${metodoPago === 'transferencia' ? 'border-emerald-500 bg-emerald-50 dark:bg-emerald-950/30' : 'dark:border-gray-700'}`}>
-                <input type="radio" name="pago" value="transferencia" checked={metodoPago === 'transferencia'} onChange={() => setMetodoPago('transferencia')} className="accent-emerald-600" />
-                <Building2 size={22} className="text-purple-600" />
-                <div>
-                  <p className="font-medium">Transferencia bancaria</p>
-                  <p className="text-sm text-gray-500">CBU: 0000000000000000000000000000</p>
-                </div>
-              </label>
-            </div>
-
             <button 
-              type="submit"
-              className="w-full mt-8 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold py-4 rounded-xl text-lg transition"
+              onClick={() => eliminarDelCarrito(item.id)}
+              className="text-red-500 hover:text-red-600 transition-colors"
+              aria-label="Eliminar"
             >
-              Confirmar compra — ${total.toLocaleString()} ARS
+              <X size={20} />
             </button>
-          </form>
-        </div>
-
-        {/* 📋 Resumen final */}
-        <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-lg p-6 h-fit sticky top-24">
-          <h2 className="text-xl font-semibold mb-4">Resumen</h2>
-          <div className="space-y-3 text-lg">
-            <div className="flex justify-between">
-              <span>Subtotal</span>
-              <span>${subtotal.toLocaleString()} ARS</span>
-            </div>
-            <div className="flex justify-between">
-              <span>Envío</span>
-              <span>${CONFIG.envioNacional.toLocaleString()} ARS</span>
-            </div>
-            <hr className="dark:border-gray-700" />
-            <div className="flex justify-between text-xl font-bold text-emerald-700 pt-2">
-              <span>Total</span>
-              <span>${total.toLocaleString()} ARS</span>
-            </div>
           </div>
-          <p className="text-xs text-gray-500 mt-4 text-center">Envío a todo el país 🇦🇷</p>
+        ))}
+
+        {/* Total */}
+        <div className="border-t border-borde pt-4 mt-4">
+          <div className="flex justify-between text-xl font-bold text-primario">
+            <span>Total</span>
+            <span>${total.toLocaleString('es-AR')} ARS</span>
+          </div>
         </div>
       </div>
+
+      {/* 💳 MÉTODOS DE PAGO */}
+      <div className="bg-white border border-borde rounded-md shadow-suave p-6">
+        <h2 className="text-xl font-semibold mb-6 text-texto">Método de pago</h2>
+        <div className="space-y-4">
+          
+          {/* 💙 Opción 1: Mercado Pago / WhatsApp — 3 cuotas */}
+          <label className={`flex items-center gap-4 p-4 rounded-md border-2 cursor-pointer transition-all ${
+            metodoPago === 'mercado-pago' 
+              ? 'border-[#009EE3] bg-sky-50' 
+              : 'border-borde hover:border-primario'
+          }`}>
+            <input 
+              type="radio" 
+              name="pago" 
+              value="mercado-pago" 
+              checked={metodoPago === 'mercado-pago'}
+              onChange={() => setMetodoPago('mercado-pago')} 
+              className="accent-[#009EE3] w-5 h-5" 
+            />
+            <CreditCard size={26} className="text-[#009EE3]" />
+            <div className="flex-1">
+              <p className="font-semibold text-texto">Mercado Pago</p>
+              <p className="text-sm text-texto-suave">Hasta 3 cuotas sin interés — te redirigimos por WhatsApp</p>
+            </div>
+          </label>
+
+          {/* 🟡 Opción 2: PayPal — abre modal */}
+          <label className={`flex items-center gap-4 p-4 rounded-md border-2 cursor-pointer transition-all ${
+            metodoPago === 'paypal' 
+              ? 'border-[#003087] bg-blue-50' 
+              : 'border-borde hover:border-primario'
+          }`}>
+            <input 
+              type="radio" 
+              name="pago" 
+              value="paypal" 
+              checked={metodoPago === 'paypal'}
+              onChange={() => setMetodoPago('paypal')} 
+              className="accent-[#003087] w-5 h-5" 
+            />
+            <svg viewBox="0 0 24 24" className="w-7 h-7 text-[#003087]" fill="currentColor">
+              <path d="M7.076 21.337H4.324a.384.384 0 01-.377-.324L1.218 3.883a.384.384 0 01.378-.443h4.772c.314 0 .544.226.582.536l.878 6.276c.038.31.268.536.582.536h2.195c1.302 0 2.284.274 2.946.821.663.547 1.013 1.356 1.053 2.427.034.933-.265 1.705-.897 2.317-.631.612-1.472.92-2.523.92h-.532c-.38 0-.688.275-.745.65l-1.229 7.88c-.035.225-.228.384-.456.384zm10.243-8.16c-.632-.612-1.472-.918-2.523-.918h-.533c-.38 0-.688.274-.745.648l-1.228 7.88c-.036.226-.229.385-.457.385h-2.752a.384.384 0 01-.377-.324L7.89 12.72c-.038-.31.17-.588.48-.588h1.75c.38 0 .688-.274.745-.648.082-.522.265-.925.549-1.208.284-.283.686-.425 1.206-.425h.533c1.302 0 2.284-.273 2.946-.82.663-.548 1.013-1.357 1.053-2.428.034-.932-.265-1.704-.897-2.316-.631-.612-1.472-.92-2.523-.92h-1.75c-.312 0-.564-.225-.598-.536L11.603 3.44a.384.384 0 01.378-.443h4.312c.377 0 .694.274.745.648l1.346 9.172a.384.384 0 01-.378.443h-1.436c-.314 0-.544.226-.582.536l-.28 1.99c-.038.31.17.588.48.588h.953c1.302 0 2.284.273 2.946.82.663.547 1.013 1.356 1.053 2.427.034.933-.265 1.705-.897 2.317-.631.612-1.472.92-2.523.92h-.533c-.38 0-.688.275-.745.65l-.28 1.99c-.036.225-.229.384-.457.384h-2.752a.384.384 0 01-.377-.324l-1.229-7.88c-.035-.225.15-.405.377-.405h.533c1.302 0 2.284-.274 2.946-.82.663-.548 1.013-1.357 1.053-2.428.034-.932-.265-1.704-.897-2.316z"/>
+            </svg>
+            <div className="flex-1">
+              <p className="font-semibold text-texto">PayPal</p>
+              <p className="text-sm text-texto-suave">Pagar con PayPal — en dólares</p>
+            </div>
+          </label>
+        </div>
+
+        {/* Botón de acción */}
+        <button
+          onClick={() => {
+            if (!metodoPago) return alert('Seleccioná un método de pago');
+            if (metodoPago === 'paypal') {
+              setMostrarModalPayPal(true);
+            } else {
+              window.open(whatsappLink, '_blank');
+              vaciarCarrito();
+              navigate('/');
+            }
+          }}
+          className="w-full mt-8 bg-primario hover:bg-primario-oscuro text-white font-semibold py-4 rounded-md text-lg transition-colors"
+        >
+          {!metodoPago 
+            ? 'Seleccioná un método de pago' 
+            : metodoPago === 'paypal' 
+              ? 'Continuar con PayPal' 
+              : 'Pagar por WhatsApp →'
+          }
+        </button>
+      </div>
+
+      {/* 💬 Nota sobre el servicio */}
+      <div className="mt-6 bg-fondo p-4 rounded-md border border-borde">
+        <p className="text-sm text-texto-suave flex items-start gap-2">
+          <HelpCircle size={16} className="mt-0.5 flex-shrink-0 text-primario" />
+          <span>Experiencia de sesión online. No recibirás un producto físico, por lo que no es necesario compartir tu dirección.</span>
+        </p>
+      </div>
+
+      {/* 🟡 MODAL DE PAYPAL */}
+      {mostrarModalPayPal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg max-w-md w-full p-6 relative">
+            <button
+              onClick={() => setMostrarModalPayPal(false)}
+              className="absolute top-4 right-4 text-texto-suave hover:text-texto"
+            >
+              <X size={22} />
+            </button>
+
+            <div className="text-center mb-6">
+              <svg viewBox="0 0 24 24" className="w-12 h-12 text-[#003087] mx-auto mb-3" fill="currentColor">
+                <path d="M7.076 21.337H4.324a.384.384 0 01-.377-.324L1.218 3.883a.384.384 0 01.378-.443h4.772c.314 0 .544.226.582.536l.878 6.276c.038.31.268.536.582.536h2.195c1.302 0 2.284.274 2.946.821.663.547 1.013 1.356 1.053 2.427.034.933-.265 1.705-.897 2.317-.631.612-1.472.92-2.523.92h-.532c-.38 0-.688.275-.745.65l-1.229 7.88c-.035.225-.228.384-.456.384zm10.243-8.16c-.632-.612-1.472-.918-2.523-.918h-.533c-.38 0-.688.274-.745.648l-1.228 7.88c-.036.226-.229.385-.457.385h-2.752a.384.384 0 01-.377-.324L7.89 12.72c-.038-.31.17-.588.48-.588h1.75c.38 0 .688-.274.745-.648.082-.522.265-.925.549-1.208.284-.283.686-.425 1.206-.425h.533c1.302 0 2.284-.273 2.946-.82.663-.548 1.013-1.357 1.053-2.428.034-.932-.265-1.704-.897-2.316-.631-.612-1.472-.92-2.523-.92h-1.75c-.312 0-.564-.225-.598-.536L11.603 3.44a.384.384 0 01.378-.443h4.312c.377 0 .694.274.745.648l1.346 9.172a.384.384 0 01-.378.443h-1.436c-.314 0-.544.226-.582.536l-.28 1.99c-.038.31.17.588.48.588h.953c1.302 0 2.284.273 2.946.82.663.547 1.013 1.356 1.053 2.427.034.933-.265 1.705-.897 2.317-.631.612-1.472.92-2.523.92h-.533c-.38 0-.688.275-.745.65l-.28 1.99c-.036.225-.229.384-.457.384h-2.752a.384.384 0 01-.377-.324l-1.229-7.88c-.035-.225.15-.405.377-.405h.533c1.302 0 2.284-.274 2.946-.82.663-.548 1.013-1.357 1.053-2.428.034-.932-.265-1.704-.897-2.316z"/>
+              </svg>
+              <h3 className="text-xl font-bold text-texto mb-2">Pagar con PayPal</h3>
+            </div>
+
+            <div className="space-y-4 text-sm">
+              <p className="text-texto-suave">
+                Envianos <span className="font-bold text-texto text-lg">${precioUSD} USD</span> a nuestro correo de PayPal:
+              </p>
+              
+              <div className="bg-fondo p-3 rounded-md text-center font-mono text-primario font-medium">
+                {correoPayPal}
+              </div>
+
+              <p className="text-texto-suave">
+                Siguiendo estas instrucciones:
+              </p>
+              <ul className="list-disc list-inside text-texto-suave space-y-1 ml-2">
+                <li>Usá tu cuenta personal de PayPal</li>
+                <li>Seleccioná "Enviar dinero a familiares y amigos"</li>
+                <li>No es necesario completar dirección de envío</li>
+              </ul>
+
+              <div className="bg-primario-claro/20 p-3 rounded-md mt-2">
+                <p className="text-xs text-primario flex items-start gap-2">
+                  <HelpCircle size={15} className="mt-0.5 flex-shrink-0" />
+                  No recibirás un producto físico, por lo que no es necesario compartir tu dirección.
+                </p>
+              </div>
+            </div>
+
+            <div className="mt-6 space-y-3">
+              {!yaPago ? (
+                <>
+                  <button
+                    onClick={() => setYaPago(true)}
+                    className="w-full bg-primario hover:bg-primario-oscuro text-white py-3 rounded-md font-medium transition-colors flex items-center justify-center gap-2"
+                  >
+                    <CheckCircle2 size={18} /> Ya realicé el pago
+                  </button>
+                  <button
+                    onClick={() => setMostrarModalPayPal(false)}
+                    className="w-full border border-borde text-texto hover:bg-fondo py-3 rounded-md font-medium transition-colors"
+                  >
+                    Volver
+                  </button>
+                </>
+              ) : (
+                <>
+                  <div className="text-center py-4">
+                    <CheckCircle2 size={40} className="text-green-500 mx-auto mb-2" />
+                    <p className="font-semibold text-texto">¡Gracias! ✨</p>
+                    <p className="text-sm text-texto-suave mt-1">En cuanto confirmemos el pago te reservamos el lugar.</p>
+                  </div>
+                  <button
+                    onClick={() => {
+                      vaciarCarrito();
+                      setMostrarModalPayPal(false);
+                      navigate('/');
+                    }}
+                    className="w-full bg-primario hover:bg-primario-oscuro text-white py-3 rounded-md font-medium transition-colors"
+                  >
+                    Volver al inicio
+                  </button>
+                </>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

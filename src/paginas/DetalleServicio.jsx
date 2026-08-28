@@ -1,12 +1,16 @@
 import { useParams, Link } from "react-router-dom";
 import { useState } from "react";
 import { SERVICIOS, CONFIG } from "../datos/servicios";
-import ProductosRelacionados from "../componentes/ProductosRelacionados";
-import { ChevronLeft, ChevronRight, CreditCard, ShoppingCart } from "lucide-react";
+import {
+  ChevronLeft,
+  ChevronRight,
+  CreditCard,
+  Calendar,
+} from "lucide-react";
 
 export default function DetalleServicio() {
   const [descripcionAbierta, setDescripcionAbierta] = useState(false);
-  
+
   const { id } = useParams();
 
   const servicio = SERVICIOS.find(
@@ -18,10 +22,11 @@ export default function DetalleServicio() {
   if (!servicio) {
     return (
       <main className="max-w-2xl mx-auto px-4 py-20 text-center">
-        <div className="bg-white border border-borde rounded-md p-8 shadow-suave">
+        <div className="bg-white border border-borde rounded-xl p-8 shadow-suave">
           <h2 className="text-2xl text-texto mb-4">
             Servicio no encontrado
           </h2>
+
           <Link
             to="/servicios"
             className="
@@ -42,91 +47,303 @@ export default function DetalleServicio() {
     );
   }
 
-  return (
-    <main className="max-w-5xl mx-auto px-4 sm:px-6 py-8 sm:py-10">
+  // PRECIO CON DESCUENTO
+  const precioConDescuento = servicio.descuentoPorcentaje
+    ? Math.round(
+        servicio.precioARS *
+          (1 - servicio.descuentoPorcentaje / 100)
+      )
+    : servicio.precioARS;
 
-      {/* VOLVER */}
-      <Link
-        to="/servicios"
+  // CUOTAS
+  const cuotas = servicio.cuotasSinInteres || 12;
+  const valorCuota = Math.round(
+    precioConDescuento / cuotas
+  );
+
+  return (
+    <main
+      className="
+        max-w-6xl
+        mx-auto
+        px-4
+        sm:px-6
+        lg:px-8
+        py-6
+        sm:py-8
+        lg:py-10
+      "
+    >
+      <section
         className="
-          inline-flex
-          items-center
-          gap-1.5
-          text-primario
-          hover:text-primario-oscuro
-          text-sm
-          mb-7
-          transition-colors
+          bg-white
+          border
+          border-borde
+          rounded-xl
+          overflow-hidden
+          shadow-suave
         "
       >
-        <ChevronLeft size={17} />
-        Volver a servicios
-      </Link>
-
-      {/* CONTENIDO PRINCIPAL */}
-      <section className="
-        bg-white
-        border
-        border-borde
-        rounded-md
-        overflow-hidden
-        shadow-suave
-        mb-14
-      ">
         <div className="grid md:grid-cols-2">
 
-          {/* ========== IMAGEN / VIDEO ========== */}
-          <div className="h-72 sm:h-96 md:h-full min-h-[300px] overflow-hidden bg-fondo">
-            {/* ✅ Si tenés videoUrl en el servicio, muestra video; si no, imagen */}
-            {servicio.videoUrl ? (
-              <video
-                src={servicio.videoUrl}
-                controls
-                autoPlay
-                muted
-                loop
-                className="w-full h-full object-cover"
-              />
-            ) : (
-              <img
-                src={servicio.imagenes[0]}
-                alt={servicio.titulo}
+          {/* =================================
+              IMAGEN / VIDEO
+          ================================= */}
+          <div className="flex flex-col">
+
+            <div
+              className="
+                w-full
+                h-[280px]
+                sm:h-[380px]
+                md:h-full
+                md:min-h-[620px]
+                overflow-hidden
+                bg-fondo
+              "
+            >
+              {servicio.videoUrl ? (
+                <video
+                  src={servicio.videoUrl}
+                  controls
+                  autoPlay
+                  muted
+                  loop
+                  playsInline
+                  className="
+                    w-full
+                    h-full
+                    object-cover
+                  "
+                />
+              ) : (
+                <img
+                  src={servicio.imagenes[0]}
+                  alt={servicio.titulo}
+                  className="
+                    w-full
+                    h-full
+                    object-cover
+                    transition-transform
+                    duration-700
+                    hover:scale-[1.02]
+                  "
+                />
+              )}
+            </div>
+
+            {/* VOLVER — DEBAJO DE LA IMAGEN */}
+            <div className="px-5 sm:px-7 py-4 border-b md:border-b-0 border-borde">
+              <Link
+                to="/servicios"
                 className="
-                  w-full
-                  h-full
-                  object-cover
-                  transition-transform
-                  duration-500
-                  hover:scale-105
+                  inline-flex
+                  items-center
+                  gap-1.5
+                  text-sm
+                  text-texto-suave
+                  hover:text-primario
+                  transition-colors
+                  group
                 "
-              />
-            )}
+              >
+                <ChevronLeft
+                  size={17}
+                  className="
+                    transition-transform
+                    duration-200
+                    group-hover:-translate-x-0.5
+                  "
+                />
+
+                <span>Volver a servicios</span>
+              </Link>
+            </div>
           </div>
 
-          {/* ========== INFORMACIÓN ========== */}
-          <div className="p-6 sm:p-8 md:p-10 flex flex-col">
+          {/* =================================
+              INFORMACIÓN DEL SERVICIO
+          ================================= */}
+          <div
+            className="
+              p-5
+              sm:p-7
+              md:p-9
+              lg:p-10
+              flex
+              flex-col
+            "
+          >
 
             {/* SKU */}
-            <p className="text-xs text-texto-suave font-mono mb-3">
+            <p
+              className="
+                text-[11px]
+                sm:text-xs
+                text-texto-suave
+                font-mono
+                tracking-wide
+                mb-2
+              "
+            >
               SKU: {servicio.sku}
             </p>
 
             {/* TÍTULO */}
-            <h1 className="text-xl sm:text-3xl text-texto leading-snug mb-5">
+            <h1
+              className="
+                text-2xl
+                sm:text-3xl
+                md:text-[32px]
+                text-texto
+                leading-tight
+                mb-5
+              "
+            >
               {servicio.titulo}
             </h1>
 
-            {/* DESCRIPCIÓN */}
+            {/* =================================
+                PRECIO + DESCUENTO
+            ================================= */}
+            <div className="mb-4">
+
+              {/* BADGE */}
+              {servicio.descuentoPorcentaje && (
+                <span
+                  className="
+                    inline-flex
+                    items-center
+                    bg-red-700
+                    text-white
+                    text-xs
+                    font-medium
+                    px-2.5
+                    py-1
+                    rounded-md
+                    mb-3
+                  "
+                >
+                  {servicio.descuentoPorcentaje}% OFF
+                </span>
+              )}
+
+              <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
+
+                {/* PRECIO ORIGINAL */}
+                {servicio.descuentoPorcentaje && (
+                  <span
+                    className="
+                      text-base
+                      sm:text-lg
+                      text-texto-suave
+                      line-through
+                    "
+                  >
+                    ${servicio.precioARS.toLocaleString("es-AR")}
+                  </span>
+                )}
+
+                {/* PRECIO FINAL */}
+                <span
+                  className="
+                    text-2xl
+                    sm:text-3xl
+                    font-medium
+                    text-primario
+                  "
+                >
+                  ${precioConDescuento.toLocaleString("es-AR")}
+                </span>
+
+                {/* PAYPAL */}
+                {servicio.precioUSD && (
+                  <span
+                    className="
+                      flex
+                      items-center
+                      gap-1.5
+                      text-sm
+                      sm:text-base
+                      text-texto-suave
+                      sm:ml-2
+                    "
+                  >
+                    <img
+                      src="https://i.postimg.cc/tR6swnc0/paypal.jpg"
+                      alt="PayPal"
+                      className="h-4 w-auto object-contain"
+                    />
+
+                    ${servicio.precioUSD} USD
+                  </span>
+                )}
+              </div>
+            </div>
+
+            {/* =================================
+                CUOTAS MERCADO PAGO
+            ================================= */}
+            <div
+              className="
+                flex
+                items-start
+                gap-2
+                mb-7
+                text-sm
+                text-[#009EE3]
+              "
+            >
+              <CreditCard
+                size={17}
+                strokeWidth={1.8}
+                className="shrink-0 mt-0.5"
+              />
+
+              <span>
+                Hasta {cuotas} cuotas sin interés de{" "}
+                <span className="font-medium">
+                  ${valorCuota.toLocaleString("es-AR")}
+                </span>{" "}
+                con Mercado Pago
+              </span>
+            </div>
+
+            {/* =================================
+                SEPARADOR
+            ================================= */}
+            <div className="border-t border-borde mb-6" />
+
+            {/* =================================
+                DESCRIPCIÓN
+            ================================= */}
             <div className="mb-7">
+
+              <h2
+                className="
+                  text-base
+                  sm:text-lg
+                  text-texto
+                  mb-3
+                "
+              >
+                Sobre esta sesión
+              </h2>
+
               <p
                 className={`
                   text-sm
                   sm:text-base
                   text-texto-suave
-                  leading-relaxed
+                  leading-7
+                  whitespace-pre-line
                   transition-all
                   duration-300
-                  ${descripcionAbierta ? "" : "line-clamp-3"}
+                  ${
+                    descripcionAbierta
+                      ? ""
+                      : "line-clamp-4"
+                  }
                 `}
               >
                 {servicio.descripcion}
@@ -134,102 +351,86 @@ export default function DetalleServicio() {
 
               {servicio.descripcion?.length > 180 && (
                 <button
-                  onClick={() => setDescripcionAbierta(!descripcionAbierta)}
+                  type="button"
+                  onClick={() =>
+                    setDescripcionAbierta(
+                      !descripcionAbierta
+                    )
+                  }
                   className="
-                    mt-2
+                    mt-3
                     inline-flex
                     items-center
                     gap-1
+                    text-sm
                     text-primario
                     hover:text-primario-oscuro
-                    text-sm
                     transition-colors
+                    group
                   "
                 >
-                  {descripcionAbierta ? "Ver menos" : "Ver más"}
+                  <span>
+                    {descripcionAbierta
+                      ? "Ver menos"
+                      : "Ver más"}
+                  </span>
+
                   <ChevronRight
                     size={15}
-                    className={`transition-transform duration-200 ${
-                      descripcionAbierta ? "-rotate-90" : "rotate-90"
-                    }`}
+                    className={`
+                      transition-transform
+                      duration-200
+                      ${
+                        descripcionAbierta
+                          ? "-rotate-90"
+                          : "rotate-90"
+                      }
+                    `}
                   />
                 </button>
               )}
             </div>
 
-            {/* SEPARADOR */}
-            <div className="border-t border-borde mb-6" />
+            {/* =================================
+                RESERVAR
+            ================================= */}
+            <div className="mt-auto pt-2">
 
-            {/* PRECIOS */}
-            <div className="mb-3">
-              <div className="flex flex-wrap items-baseline gap-x-4 gap-y-1">
-                <span className="text-2xl sm:text-3xl text-primario font-semibold">
-                  ${servicio.precioARS.toLocaleString("es-AR")}
-                </span>
-                <span className="text-base sm:text-lg text-texto-suave">
-                  $ {servicio.precioUSD} USD PayPal
-                </span>
-              </div>
+              <Link
+                to="/checkout"
+                className="
+                  w-full
+                  flex
+                  items-center
+                  justify-center
+                  gap-2.5
+                  bg-primario
+                  hover:bg-primario-oscuro
+                  active:scale-[0.99]
+                  text-white
+                  py-3.5
+                  px-5
+                  rounded-lg
+                  text-sm
+                  sm:text-base
+                  font-medium
+                  transition-all
+                  duration-200
+                  shadow-sm
+                "
+              >
+                <Calendar
+                  size={19}
+                  strokeWidth={1.8}
+                />
+
+                Reservar ahora
+              </Link>
+
             </div>
-
-            {/* ✅ CUOTAS — AZUL MERCADO PAGO + ÍCONO */}
-            <p className="
-              flex
-              items-center
-              gap-1.5
-              text-sm
-              text-[#009EE3]
-              font-medium
-              mb-8
-            ">
-              <CreditCard size={16} className="text-[#009EE3]" />
-              Hasta 12 cuotas sin interés con Mercado Pago
-            </p>
-
-            {/* ✅ BOTÓN — AGREGAR AL CARRITO (verde suave #C5EEA8) */}
-            <Link
-              to="/tienda"
-              className="
-                mt-auto
-                w-full
-                flex
-                items-center
-                justify-center
-                gap-2.5
-                bg-[#C5EEA8]
-                hover:bg-[#A8E080]
-                text-texto
-                py-3
-                px-5
-                rounded-md
-                text-sm
-                font-medium
-                border
-                border-[#B5E497]
-                transition-all
-                duration-200
-              "
-            >
-              <ShoppingCart size={19} strokeWidth={1.8} />
-              Agregar al carrito
-            </Link>
-
           </div>
         </div>
       </section>
-
-      {/* PRODUCTOS RELACIONADOS */}
-      <section>
-        <ProductosRelacionados
-          productoId={servicio.id}
-          productoRelacionadoId={servicio.productoRelacionadoId}
-          productosRelacionadosIds={
-            servicio.productosRelacionadosIds || []
-          }
-          titulo="Complementá tu práctica"
-        />
-      </section>
-
     </main>
   );
 }
