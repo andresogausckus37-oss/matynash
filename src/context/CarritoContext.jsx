@@ -1,60 +1,148 @@
-import { createContext, useContext, useState, useEffect } from 'react';
-import { CONFIG } from '../datos/servicios';
+import { createContext, useContext, useEffect, useState } from "react";
 
-const CarritoContext = createContext();
+const CarritoContext = createContext(null);
 
 export function CarritoProvider({ children }) {
-  const [carrito, setCarrito] = useState([]);
+  // ==========================================
+  // CARGAR CARRITO DESDE LOCALSTORAGE
+  // ==========================================
 
-  // Cargar carrito guardado
-  useEffect(() => {
-    const guardado = localStorage.getItem('carrito');
-    if (guardado) setCarrito(JSON.parse(guardado));
-  }, []);
+  const [carrito, setCarrito] = useState(() => {
+    try {
+      const guardado = localStorage.getItem("carrito");
 
-  // Guardar carrito
+      return guardado ? JSON.parse(guardado) : [];
+    } catch (error) {
+      console.error("Error al cargar el carrito:", error);
+      return [];
+    }
+  });
+
+  // ==========================================
+  // GUARDAR CARRITO
+  // ==========================================
+
   useEffect(() => {
-    localStorage.setItem('carrito', JSON.stringify(carrito));
+    try {
+      localStorage.setItem(
+        "carrito",
+        JSON.stringify(carrito)
+      );
+    } catch (error) {
+      console.error("Error al guardar el carrito:", error);
+    }
   }, [carrito]);
 
-  const agregarAlCarrito = (producto, cantidad = 1) => {
-    setCarrito(prev => {
-      const existe = prev.find(item => item.id === producto.id);
+  // ==========================================
+  // AGREGAR AL CARRITO
+  // ==========================================
+
+  const agregarAlCarrito = (servicio) => {
+    setCarrito((prev) => {
+      const existe = prev.some(
+        (item) => item.id === servicio.id
+      );
+
       if (existe) {
-        return prev.map(item => 
-          item.id === producto.id 
-            ? {...item, cantidad: item.cantidad + cantidad} 
-            : item
-        );
+        return prev;
       }
-      return [...prev, {...producto, cantidad}];
+
+      return [
+        ...prev,
+        {
+          ...servicio,
+          cantidad: 1,
+        },
+      ];
     });
   };
 
-  const eliminarDelCarrito = (id) => {
-    setCarrito(prev => prev.filter(item => item.id !== id));
-  };
+  // ==========================================
+  // ELIMINAR
+  // ==========================================
 
-  const cambiarCantidad = (id, cantidad) => {
-    if (cantidad < 1) return;
-    setCarrito(prev => 
-      prev.map(item => item.id === id ? {...item, cantidad} : item)
+  const eliminarDelCarrito = (id) => {
+    setCarrito((prev) =>
+      prev.filter((item) => item.id !== id)
     );
   };
 
-  const vaciarCarrito = () => setCarrito([]);
+  // ==========================================
+  // CAMBIAR CANTIDAD
+  // ==========================================
 
-  const subtotal = carrito.reduce((sum, item) => sum + item.precioARS * item.cantidad, 0);
-  const total = carrito.length > 0 ? subtotal + CONFIG.envioNacional : 0;
+  const cambiarCantidad = (id, cantidad) => {
+    if (cantidad < 1) return;
+
+    setCarrito((prev) =>
+      prev.map((item) =>
+        item.id === id
+          ? {
+              ...item,
+              cantidad,
+            }
+          : item
+      )
+    );
+  };
+
+  // ==========================================
+  // VACIAR CARRITO
+  // ==========================================
+
+  const vaciarCarrito = () => {
+    setCarrito([]);
+  };
+
+  // ==========================================
+  // SUBTOTAL / TOTAL
+  // ==========================================
+
+  const subtotal = carrito.reduce(
+    (sum, item) =>
+      sum + item.precioARS * item.cantidad,
+    0
+  );
+
+  // Actualmente son servicios online:
+  // no corresponde costo de envío.
+  const total = subtotal;
+
+  // ==========================================
+  // TOTAL DE ITEMS
+  // ==========================================
+
+  const totalItems = carrito.reduce(
+    (sum, item) => sum + item.cantidad,
+    0
+  );
 
   return (
-    <CarritoContext.Provider value={{
-      carrito, agregarAlCarrito, eliminarDelCarrito, 
-      cambiarCantidad, vaciarCarrito, subtotal, total
-    }}>
+    <CarritoContext.Provider
+      value={{
+        carrito,
+        agregarAlCarrito,
+        eliminarDelCarrito,
+        cambiarCantidad,
+        vaciarCarrito,
+        subtotal,
+        total,
+        totalItems,
+      }}
+    >
       {children}
     </CarritoContext.Provider>
   );
 }
 
-export const useCarrito = () => useContext(CarritoContext);
+export function useCarrito() {
+  const context = useContext(CarritoContext);
+
+  if (!context) {
+    throw new Error(
+      "useCarrito debe utilizarse dentro de CarritoProvider"
+    );
+  }
+
+  return context;
+}

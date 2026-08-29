@@ -1,4 +1,4 @@
-import { useParams, Link } from "react-router-dom";
+import { useParams, Link, useNavigate } from "react-router-dom";
 import { useState } from "react";
 import { SERVICIOS, CONFIG } from "../datos/servicios";
 import {
@@ -8,6 +8,9 @@ import {
   Calendar,
 } from "lucide-react";
 
+import { useCarrito } from "../context/CarritoContext";
+import CalendarioReservas from "../componentes/CalendarioReservas";
+
 export default function DetalleServicio() {
   const [descripcionAbierta, setDescripcionAbierta] = useState(false);
 
@@ -16,6 +19,23 @@ export default function DetalleServicio() {
   const servicio = SERVICIOS.find(
     (s) => s.id === Number(id) || s.id === id
   );
+  const navigate = useNavigate();
+  const { agregarAlCarrito } = useCarrito();
+
+  const [reserva, setReserva] = useState(null);
+
+  const reservarAhora = () => {
+    if (!reserva) {
+      return;
+    }
+
+    agregarAlCarrito({
+      ...servicio,
+      reserva,
+    });
+
+    navigate("/checkout");
+  };
 
   const { terapeuta } = CONFIG;
 
@@ -47,7 +67,10 @@ export default function DetalleServicio() {
     );
   }
 
+  // =================================
   // PRECIO CON DESCUENTO
+  // =================================
+
   const precioConDescuento = servicio.descuentoPorcentaje
     ? Math.round(
         servicio.precioARS *
@@ -55,8 +78,23 @@ export default function DetalleServicio() {
       )
     : servicio.precioARS;
 
+  // =================================
+  // PRECIO USD CON DESCUENTO
+  // =================================
+
+  const precioUSDConDescuento = servicio.descuentoPorcentaje
+    ? (
+        servicio.precioUSD *
+        (1 - servicio.descuentoPorcentaje / 100)
+      ).toFixed(2)
+    : servicio.precioUSD;
+
+  // =================================
   // CUOTAS
+  // =================================
+
   const cuotas = servicio.cuotasSinInteres || 12;
+
   const valorCuota = Math.round(
     precioConDescuento / cuotas
   );
@@ -89,6 +127,7 @@ export default function DetalleServicio() {
           {/* =================================
               IMAGEN / VIDEO
           ================================= */}
+
           <div className="flex flex-col">
 
             <div
@@ -133,7 +172,17 @@ export default function DetalleServicio() {
             </div>
 
             {/* VOLVER — DEBAJO DE LA IMAGEN */}
-            <div className="px-5 sm:px-7 py-4 border-b md:border-b-0 border-borde">
+
+            <div
+              className="
+                px-5
+                sm:px-7
+                py-4
+                border-b
+                md:border-b-0
+                border-borde
+              "
+            >
               <Link
                 to="/servicios"
                 className="
@@ -164,6 +213,7 @@ export default function DetalleServicio() {
           {/* =================================
               INFORMACIÓN DEL SERVICIO
           ================================= */}
+
           <div
             className="
               p-5
@@ -175,7 +225,10 @@ export default function DetalleServicio() {
             "
           >
 
-            {/* SKU */}
+            {/* =================================
+                SKU
+            ================================= */}
+
             <p
               className="
                 text-[11px]
@@ -189,7 +242,10 @@ export default function DetalleServicio() {
               SKU: {servicio.sku}
             </p>
 
-            {/* TÍTULO */}
+            {/* =================================
+                TÍTULO
+            ================================= */}
+
             <h1
               className="
                 text-2xl
@@ -204,11 +260,13 @@ export default function DetalleServicio() {
             </h1>
 
             {/* =================================
-                PRECIO + DESCUENTO
+                PRECIO + PAYPAL
             ================================= */}
-            <div className="mb-4">
+
+            <div className="mb-5">
 
               {/* BADGE */}
+
               {servicio.descuentoPorcentaje && (
                 <span
                   className="
@@ -221,69 +279,139 @@ export default function DetalleServicio() {
                     px-2.5
                     py-1
                     rounded-md
-                    mb-3
+                    mb-4
                   "
                 >
                   {servicio.descuentoPorcentaje}% OFF
                 </span>
               )}
 
-              <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
+              {/* DOS COLUMNAS */}
 
-                {/* PRECIO ORIGINAL */}
-                {servicio.descuentoPorcentaje && (
-                  <span
+              <div
+                className="
+                  grid
+                  grid-cols-2
+                  gap-5
+                  sm:gap-8
+                "
+              >
+
+                {/* =================================
+                    MERCADO PAGO / ARS
+                ================================= */}
+
+                <div className="min-w-0">
+
+                  <div
                     className="
-                      text-base
-                      sm:text-lg
-                      text-texto-suave
-                      line-through
+                      text-2xl
+                      sm:text-3xl
+                      font-medium
+                      text-primario
+                      leading-tight
                     "
                   >
-                    ${servicio.precioARS.toLocaleString("es-AR")}
-                  </span>
-                )}
+                    $ {precioConDescuento.toLocaleString("es-AR")}
+                  </div>
 
-                {/* PRECIO FINAL */}
-                <span
-                  className="
-                    text-2xl
-                    sm:text-3xl
-                    font-medium
-                    text-primario
-                  "
-                >
-                  ${precioConDescuento.toLocaleString("es-AR")}
-                </span>
+                  {servicio.descuentoPorcentaje && (
+                    <div
+                      className="
+                        mt-1
+                        text-sm
+                        sm:text-base
+                        text-texto-suave
+                        line-through
+                      "
+                    >
+                      $ {servicio.precioARS.toLocaleString("es-AR")}
+                    </div>
+                  )}
 
-                {/* PAYPAL */}
+                </div>
+
+                {/* =================================
+                    PAYPAL / USD
+                ================================= */}
+
                 {servicio.precioUSD && (
-                  <span
+                  <div
                     className="
+                      min-w-0
                       flex
-                      items-center
-                      gap-1.5
-                      text-sm
-                      sm:text-base
-                      text-texto-suave
-                      sm:ml-2
+                      flex-col
+                      items-end
+                      text-right
                     "
                   >
-                    <img
-                      src="https://i.postimg.cc/tR6swnc0/paypal.jpg"
-                      alt="PayPal"
-                      className="h-4 w-auto object-contain"
-                    />
 
-                    ${servicio.precioUSD} USD
-                  </span>
+                    <div
+                      className="
+                        flex
+                        items-center
+                        justify-end
+                        gap-1.5
+                        mb-1
+                      "
+                    >
+
+                      <img
+                        src="https://i.postimg.cc/tR6swnc0/paypal.jpg"
+                        alt="PayPal"
+                        className="
+                          h-4
+                          sm:h-5
+                          w-auto
+                          object-contain
+                        "
+                      />
+
+                      <span
+                        className="
+                          text-xl
+                          sm:text-2xl
+                          font-medium
+                          text-texto
+                        "
+                      >
+                        $ {precioUSDConDescuento}
+                      </span>
+
+                      <span
+                        className="
+                          text-sm
+                          text-texto-suave
+                        "
+                      >
+                        USD
+                      </span>
+
+                    </div>
+
+                    {servicio.descuentoPorcentaje && (
+                      <div
+                        className="
+                          text-sm
+                          sm:text-base
+                          text-texto-suave
+                          line-through
+                        "
+                      >
+                        $ {servicio.precioUSD} USD
+                      </div>
+                    )}
+
+                  </div>
                 )}
+
               </div>
             </div>
 
             {/* =================================
                 CUOTAS MERCADO PAGO
             ================================= */}
+
             <div
               className="
                 flex
@@ -297,13 +425,16 @@ export default function DetalleServicio() {
               <CreditCard
                 size={17}
                 strokeWidth={1.8}
-                className="shrink-0 mt-0.5"
+                className="
+                  shrink-0
+                  mt-0.5
+                "
               />
 
               <span>
                 Hasta {cuotas} cuotas sin interés de{" "}
                 <span className="font-medium">
-                  ${valorCuota.toLocaleString("es-AR")}
+                  $ {valorCuota.toLocaleString("es-AR")}
                 </span>{" "}
                 con Mercado Pago
               </span>
@@ -312,11 +443,13 @@ export default function DetalleServicio() {
             {/* =================================
                 SEPARADOR
             ================================= */}
+
             <div className="border-t border-borde mb-6" />
 
             {/* =================================
                 DESCRIPCIÓN
             ================================= */}
+
             <div className="mb-7">
 
               <h2
@@ -389,45 +522,60 @@ export default function DetalleServicio() {
                   />
                 </button>
               )}
+
             </div>
 
             {/* =================================
-                RESERVAR
+                BOTÓN RESERVAR
             ================================= */}
+
             <div className="mt-auto pt-2">
 
-              <Link
-                to="/checkout"
-                className="
-                  w-full
-                  flex
-                  items-center
-                  justify-center
-                  gap-2.5
-                  bg-primario
-                  hover:bg-primario-oscuro
-                  active:scale-[0.99]
-                  text-white
-                  py-3.5
-                  px-5
-                  rounded-lg
-                  text-sm
-                  sm:text-base
-                  font-medium
-                  transition-all
-                  duration-200
-                  shadow-sm
-                "
-              >
-                <Calendar
-                  size={19}
-                  strokeWidth={1.8}
+              <div className="mb-7">
+                <CalendarioReservas
+                  tipoSesion={servicio.tipoCalendario}
+                  valor={reserva}
+                  onChange={setReserva}
                 />
+              </div>
 
-                Reservar ahora
-              </Link>
+            <button
+              type="button"
+              onClick={reservarAhora}
+              disabled={!reserva}
+              className={`
+                w-full
+                flex
+                items-center
+                justify-center
+                gap-2.5
+                py-3.5
+                px-5
+                rounded-lg
+                text-sm
+                sm:text-base
+                font-medium
+                transition-all
+                duration-200
+                ${
+                  reserva
+                    ? "bg-primario hover:bg-primario-oscuro active:scale-[0.99] text-white shadow-sm"
+                    : "bg-gray-200 text-gray-400 cursor-not-allowed"
+                }
+              `}
+            >
+              <Calendar
+                size={19}
+                strokeWidth={1.8}
+              />
+
+              {reserva
+                ? "Reservar ahora"
+                : "Elegí un día y horario"}
+            </button>
 
             </div>
+
           </div>
         </div>
       </section>
