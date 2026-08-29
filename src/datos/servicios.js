@@ -52,14 +52,8 @@ export const SERVICIOS = [
     tipoCalendario: "madruterapia",
 
     descripcion:
-      "Una pausa reservada para vos.\n" +
-      "Sin ruido. Sin prisa. Sin mundo exterior.\n\n" +
-      "En la intimidad de tu propio espacio, entrégate al placer de bajar el ritmo, respirar profundo y volver a sentirte. Un ritual de relajación, presencia y conexión energética, diseñado especialmente para vos.\n\n" +
-      "Yo te acompaño a recorrer tu mundo interior, interpretar las señales de tu energía y despertar aquello que tu conciencia viene intentando decirte.\n\n" +
-      "Lujo es poder detenerte.\n" +
-      "Exclusividad es tener un espacio donde simplemente podés ser.\n\n" +
-      "Madruterapia.\n" +
-      "Tu noche. Tu energía. Tu ritual privado.",
+"Una pausa reservada para vos. Sin ruido. Sin prisa. Sin mundo exterior. En la intimidad de tu propio espacio, entrégate al placer de bajar el ritmo, respirar profundo y volver a sentirte. Un ritual de relajación, presencia y conexión energética, diseñado especialmente para vos. Yo te acompaño a recorrer tu mundo interior, interpretar las señales de tu energía y despertar aquello que tu conciencia viene intentando decirte. Lujo es poder detenerte. Exclusividad es tener un espacio donde simplemente podés ser.\n\n" +
+"Madruterapia. Tu noche. Tu energía. Tu ritual privado.",
 
     precioARS: 350000,
 
@@ -77,12 +71,12 @@ export const SERVICIOS = [
   },
 
   {
-    id: "yoga-clase-002",
+    id: "aura",
 
     sku: "HT-YOG-002",
 
     titulo:
-      "Clase de Yoga Personalizada",
+      "AURA • Apertura en energía",
 
     // TEMPORAL:
     // utilizamos el horario Aura
@@ -90,18 +84,19 @@ export const SERVICIOS = [
     tipoCalendario: "aura",
 
     descripcion:
-      "Un espacio para reconectar con vos mismo, liberar tensiones y recuperar el equilibrio. A través de prácticas conscientes y herramientas de bienestar, podrás explorar tus emociones, cultivar mayor calma y fortalecer tu conexión interior. Regalate un momento para detenerte, escucharte y comenzar un camino hacia una vida más plena y armoniosa.",
+"☀️ AURA — APERTURA EN ENERGÍA\n\n" +
+"Para cuando necesitás activar, despertar y comenzar diferente. Movimiento consciente, respiración, meditación y música pueden combinarse para crear una experiencia dinámica y estimulante. Despertá tu energía. Abrí el día desde vos.",
 
-    precioARS: 12000,
+    precioARS: 90000,
 
-    precioUSD: 12,
+    precioUSD: 99,
 
-    cuotasSinInteres: 6,
+    cuotasSinInteres: 3,
 
     imagenes: [
-      "https://i.postimg.cc/j5JSYGcj/pexels-elly-fairytale-3822534.jpg",
+      "https://i.postimg.cc/NjqMYw7Y/IMG-20260829-WA0013.jpg",
     ],
 
-    categoria: "yoga",
+    categoria: "terapia",
   },
 ];

@@ -64,6 +64,17 @@ function obtenerInicioSemana(fecha) {
   return nuevaFecha;
 }
 
+const scrollHastaReservar = () => {
+  setTimeout(() => {
+    const boton = document.getElementById("boton-reservar");
+
+    boton?.scrollIntoView({
+      behavior: "smooth",
+      block: "center",
+    });
+  }, 150);
+};
+
 function sumarDias(fecha, cantidad) {
   const nuevaFecha = new Date(fecha);
 
@@ -76,7 +87,7 @@ function sumarDias(fecha, cantidad) {
 
 function formatearFechaISO(fecha) {
   const year = fecha.getFullYear();
-
+  
   const month = String(
     fecha.getMonth() + 1
   ).padStart(2, "0");
@@ -86,6 +97,18 @@ function formatearFechaISO(fecha) {
   ).padStart(2, "0");
 
   return `${year}-${month}-${day}`;
+}
+
+function formatearFechaSeleccionada(fechaISO) {
+  if (!fechaISO) return "";
+
+  const fecha = new Date(`${fechaISO}T12:00:00`);
+
+  return new Intl.DateTimeFormat("es-AR", {
+    weekday: "long",
+    day: "numeric",
+    month: "long",
+  }).format(fecha);
 }
 
 // ==========================================
@@ -132,23 +155,26 @@ export default function CalendarioReservas({
     );
   };
 
-  const seleccionarHorario = (
-    fecha,
-    hora,
-    estado
-  ) => {
-    if (estado !== "disponible") {
-      return;
-    }
-
-    onChange?.({
-      fecha: formatearFechaISO(fecha),
+    const seleccionarHorario = (
+      fecha,
       hora,
-      duracion: sesion.duracion,
-      tipoSesion,
-      nombreSesion: sesion.nombre,
-    });
-  };
+      estado
+    ) => {
+      if (estado !== "disponible") {
+        return;
+      }
+
+      onChange?.({
+        fecha: formatearFechaISO(fecha),
+        hora,
+        duracion: sesion.duracion,
+        tipoSesion,
+        nombreSesion: sesion.nombre,
+      });
+
+      scrollHastaReservar();
+    };
+  
 
   const tituloSemana = `${inicioSemana.getDate()} ${
     MESES_CORTOS[inicioSemana.getMonth()]
@@ -159,9 +185,9 @@ export default function CalendarioReservas({
   return (
     <section
       className="
-        border
+        
         border-borde
-        rounded-xl
+        rounded-3xl
         bg-white
         overflow-hidden
       "
@@ -172,7 +198,7 @@ export default function CalendarioReservas({
         className="
           px-4
           sm:px-5
-          py-4
+          py-1
           border-b
           border-borde
         "
@@ -186,11 +212,9 @@ export default function CalendarioReservas({
           "
         >
           <div>
-            <h3 className="text-base sm:text-lg font-medium text-texto">
-              Elegí día y horario
-            </h3>
+            
 
-            <p className="text-xs sm:text-sm text-texto-suave mt-1">
+            <p className="text-md sm:text-sm text-texto-suave -mt-5">
               {sesion.nombre} · {sesion.duracion} min
             </p>
           </div>
@@ -263,92 +287,14 @@ export default function CalendarioReservas({
         </p>
       </div>
 
-      {/* DÍAS */}
-
-      <div
-        className="
-          grid
-          grid-cols-7
-          border-b
-          border-borde
-        "
-      >
-        {diasSemana.map((fecha) => {
-          const indiceDia =
-            fecha.getDay();
-
-          const nombreDia =
-            NOMBRES_DIAS[indiceDia];
-
-          const configuracionDia =
-            CONFIG_CALENDARIO.dias[nombreDia];
-
-          return (
-            <div
-              key={fecha.toISOString()}
-              className="
-                text-center
-                py-3
-                px-1
-                border-r
-                border-borde
-                last:border-r-0
-              "
-            >
-              <p
-                className="
-                  text-[10px]
-                  sm:text-xs
-                  uppercase
-                  tracking-wide
-                  text-texto-suave
-                "
-              >
-                {NOMBRES_CORTOS[indiceDia]}
-              </p>
-
-              <p
-                className="
-                  text-sm
-                  sm:text-base
-                  font-medium
-                  text-texto
-                  mt-1
-                "
-              >
-                {fecha.getDate()}
-              </p>
-
-              <span
-                className={`
-                  inline-block
-                  mt-1
-                  text-[9px]
-                  sm:text-[10px]
-                  ${
-                    configuracionDia.estado ===
-                    "disponible"
-                      ? "text-green-600"
-                      : configuracionDia.estado ===
-                        "reservado"
-                      ? "text-gray-500"
-                      : "text-red-500"
-                  }
-                `}
-              >
-                {configuracionDia.texto}
-              </span>
-            </div>
-          );
-        })}
-      </div>
+      
 
       {/* HORARIOS */}
 
       <div
         className="
           grid
-          grid-cols-1
+          grid-cols-2
           md:grid-cols-7
         "
       >
@@ -378,11 +324,11 @@ export default function CalendarioReservas({
                 last:border-r-0
               "
             >
-              {/* CABECERA MÓVIL */}
+              {/* CABECERA DEL DÍA */}
 
               <div
                 className="
-                  md:hidden
+                  
                   flex
                   items-center
                   justify-between
@@ -543,13 +489,9 @@ export default function CalendarioReservas({
             "
           >
             Seleccionaste{" "}
-            <span className="font-medium">
-              {valor.fecha}
-            </span>{" "}
-            a las{" "}
-            <span className="font-medium">
-              {valor.hora}
-            </span>
+<span className="font-medium">
+  {formatearFechaSeleccionada(valor.fecha)}
+</span>
           </div>
         )}
     </section>
