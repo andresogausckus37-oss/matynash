@@ -16,9 +16,13 @@ const REFERENCIAS = {
   },
 };
 
+// ==========================================
+// CONFIGURACIÓN
+// ==========================================
+
 const CLAVE_REFERENCIA = "matynash_referencia";
 
-// Duración del First Click: 30 días
+// 30 días en milisegundos
 const DURACION_REFERENCIA =
   30 * 24 * 60 * 60 * 1000;
 
@@ -29,20 +33,20 @@ const DURACION_REFERENCIA =
 export function guardarReferencia(codigo) {
   const referencia = REFERENCIAS[codigo];
 
+  // Código inexistente
   if (!referencia) {
     return null;
   }
 
-  // Revisamos si ya existe una referencia válida
+  // Revisar si ya existe un First Click válido
   const referenciaExistente = obtenerReferencia();
 
-  // First Click:
-  // si ya existe una referencia válida, la mantenemos.
+  // FIRST CLICK ESTRICTO:
+  // si ya existe, no se reemplaza.
   if (referenciaExistente) {
     return referenciaExistente;
   }
 
-  // Si no existe o venció, guardamos una nueva.
   const datos = {
     codigo: referencia.codigo,
     fecha: Date.now(),
@@ -61,8 +65,9 @@ export function guardarReferencia(codigo) {
 // ==========================================
 
 export function obtenerReferencia() {
-  const guardado =
-    localStorage.getItem(CLAVE_REFERENCIA);
+  const guardado = localStorage.getItem(
+    CLAVE_REFERENCIA
+  );
 
   if (!guardado) {
     return null;
@@ -71,29 +76,46 @@ export function obtenerReferencia() {
   try {
     const datos = JSON.parse(guardado);
 
-    // Validamos que tenga la estructura correcta
-    if (!datos.codigo || !datos.fecha) {
-      localStorage.removeItem(CLAVE_REFERENCIA);
+    // Validar estructura
+    if (!datos?.codigo || !datos?.fecha) {
+      localStorage.removeItem(
+        CLAVE_REFERENCIA
+      );
+
       return null;
     }
 
-    // Calculamos cuánto tiempo pasó
+    // Validar que el referente siga existiendo
+    if (!REFERENCIAS[datos.codigo]) {
+      localStorage.removeItem(
+        CLAVE_REFERENCIA
+      );
+
+      return null;
+    }
+
+    // Verificar vencimiento
     const tiempoTranscurrido =
       Date.now() - datos.fecha;
 
-    // Si pasaron más de 30 días, eliminamos
-    // la referencia y queda disponible
-    // para un nuevo First Click.
-    if (tiempoTranscurrido >= DURACION_REFERENCIA) {
-      localStorage.removeItem(CLAVE_REFERENCIA);
+    if (
+      tiempoTranscurrido >=
+      DURACION_REFERENCIA
+    ) {
+      localStorage.removeItem(
+        CLAVE_REFERENCIA
+      );
+
       return null;
     }
 
     return datos.codigo;
-  } catch (error) {
-    // Si hay datos antiguos o dañados,
-    // los eliminamos.
-    localStorage.removeItem(CLAVE_REFERENCIA);
+  } catch {
+    // Datos antiguos, corruptos o incompatibles
+    localStorage.removeItem(
+      CLAVE_REFERENCIA
+    );
+
     return null;
   }
 }
@@ -105,65 +127,22 @@ export function obtenerReferencia() {
 export function obtenerDatosReferencia() {
   const codigo = obtenerReferencia();
 
+  // Si todavía no existe referencia,
+  // usamos Maty como destino por defecto.
   if (!codigo) {
     return REFERENCIAS.maty;
   }
 
-  return REFERENCIAS[codigo] || REFERENCIAS.maty;
+  return (
+    REFERENCIAS[codigo] ||
+    REFERENCIAS.maty
+  );
 }
 
 // ==========================================
-// OBTENER WHATSAPP
+// OBTENER WHATSAPP DEL REFERENTE
 // ==========================================
 
 export function obtenerWhatsAppReferencia() {
-  const referencia = obtenerDatosReferencia();
-
-  return referencia.whatsapp;
-}
-
-// ==========================================
-// DETECTAR REFERENCIA DESDE URL
-// ==========================================
-
-export function detectarReferenciaDesdeURL(
-  pathname,
-  search = ""
-) {
-  // FIRST CLICK ESTRICTO:
-  // si ya existe una referencia válida,
-  // no permitimos reemplazarla.
-  const existente = obtenerReferencia();
-
-  if (existente) {
-    return existente;
-  }
-
-  const parametros = new URLSearchParams(search);
-
-  const referenciaURL =
-    parametros.get("ref");
-
-  // Si viene ?ref=andres o ?ref=maty
-  if (
-    referenciaURL &&
-    REFERENCIAS[referenciaURL]
-  ) {
-    return guardarReferencia(
-      referenciaURL
-    );
-  }
-
-  // Si entra directamente por /andres
-  if (
-    pathname === "/andres" ||
-    pathname.startsWith("/andres/")
-  ) {
-    return guardarReferencia(
-      "andres"
-    );
-  }
-
-  // Cualquier entrada normal pertenece a Maty
-  return guardarReferencia("maty");
+  return obtenerDatosReferencia().whatsapp;
 }

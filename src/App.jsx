@@ -7,7 +7,6 @@ import Checkout from "./paginas/Checkout";
 import { CarritoProvider } from "./context/CarritoContext";
 import { guardarReferencia } from "./utilidades/referencias";
 import ScrollGlobal from "./componentes/ScrollGlobal";
-import ReferenciaGlobal from "./componentes/ReferenciaGlobal";
 
 function DetectorReferencia() {
   const location = useLocation();
@@ -30,7 +29,7 @@ export default function App() {
       <Router>
         <ScrollGlobal />
         <DetectorReferencia />
-        <ReferenciaGlobal />
+        
         <Navbar />
         <main className="pb-20">
           <Routes>
