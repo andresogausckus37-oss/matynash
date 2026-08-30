@@ -121,3 +121,49 @@ export function obtenerWhatsAppReferencia() {
 
   return referencia.whatsapp;
 }
+
+// ==========================================
+// DETECTAR REFERENCIA DESDE URL
+// ==========================================
+
+export function detectarReferenciaDesdeURL(
+  pathname,
+  search = ""
+) {
+  // FIRST CLICK ESTRICTO:
+  // si ya existe una referencia válida,
+  // no permitimos reemplazarla.
+  const existente = obtenerReferencia();
+
+  if (existente) {
+    return existente;
+  }
+
+  const parametros = new URLSearchParams(search);
+
+  const referenciaURL =
+    parametros.get("ref");
+
+  // Si viene ?ref=andres o ?ref=maty
+  if (
+    referenciaURL &&
+    REFERENCIAS[referenciaURL]
+  ) {
+    return guardarReferencia(
+      referenciaURL
+    );
+  }
+
+  // Si entra directamente por /andres
+  if (
+    pathname === "/andres" ||
+    pathname.startsWith("/andres/")
+  ) {
+    return guardarReferencia(
+      "andres"
+    );
+  }
+
+  // Cualquier entrada normal pertenece a Maty
+  return guardarReferencia("maty");
+}

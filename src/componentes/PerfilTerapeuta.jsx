@@ -56,15 +56,15 @@ export default function PerfilTerapeuta() {
           <video
             src={videoCloudinaryUrl}
             autoPlay
-            muted
-            loop
+            
+            
             playsInline
             preload="metadata"
             aria-label={`Video de presentación de ${terapeuta.nombre}`}
             className="
               block
               w-full
-              h-[240px]
+              h-[450px]
               sm:h-[300px]
               md:h-[380px]
               lg:h-[440px]

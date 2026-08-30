@@ -15,7 +15,7 @@ export const CONFIG = {
       "https://i.postimg.cc/KzSm1TYC/IMG-20260825-WA0001.jpg",
 
     videoBannerUrl:
-      "https://player.cloudinary.com/embed/?jqtldbag=jqtldbag&public_id=VID-20260828-WA0013",
+      "https://res.cloudinary.com/jqtldbag/video/upload/VID-20260828-WA0013.mp4",
 
     whatsapp: "5493548619293",
 
@@ -26,7 +26,7 @@ export const CONFIG = {
       "https://www.tiktok.com/@matynash?_r=1&_t=ZS-99Boint7LVP",
 
     facebook:
-      "https://facebook.com/tu_pagina",
+      "https://www.facebook.com/share/1HRi1dCmEQ/?mibextid=wwXIfr",
 
     moneda: "ARS",
 

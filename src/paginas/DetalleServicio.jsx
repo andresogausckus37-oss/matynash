@@ -35,17 +35,28 @@ export default function DetalleServicio() {
     );
   }
 
-  // Precios con descuento
-  const precioConDescuento = servicio.descuentoPorcentaje
-    ? Math.round(servicio.precioARS * (1 - servicio.descuentoPorcentaje / 100))
-    : servicio.precioARS;
+  // ✅ CÁLCULOS DE PRECIOS
+  const descuentoBase = servicio.descuentoPorcentaje || 0;
+  const precioBase = servicio.precioARS;
+  const precioConDescuento = descuentoBase > 0
+    ? Math.round(precioBase * (1 - descuentoBase / 100))
+    : precioBase;
 
-  const precioUSDConDescuento = servicio.descuentoPorcentaje
-    ? (servicio.precioUSD * (1 - servicio.descuentoPorcentaje / 100)).toFixed(2)
+  // Descuento extra 10% para 1 cuota (igual que en Checkout)
+  const descuentoExtra = 10;
+  const precioUnaCuota = Math.round(precioConDescuento * (1 - descuentoExtra / 100));
+  const descuentoTotal = descuentoBase + descuentoExtra - (descuentoBase * descuentoExtra / 100);
+
+  // Cuotas
+  const cuotas = servicio.cuotasSinInteres || 3;
+  const valorCuota = Math.round(precioConDescuento / cuotas);
+
+  // USD
+  const precioUSDConDescuento = descuentoBase > 0
+    ? (servicio.precioUSD * (1 - descuentoBase / 100)).toFixed(2)
     : servicio.precioUSD;
 
-  const cuotas = servicio.cuotasSinInteres || 12;
-  const valorCuota = Math.round(precioConDescuento / cuotas);
+  const formatearARS = (valor) => Number(valor).toLocaleString("es-AR");
 
   return (
     <main className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 lg:py-10">
@@ -61,125 +72,121 @@ export default function DetalleServicio() {
                 <img src={servicio.imagenes[0]} alt={servicio.titulo} className="w-full h-full object-cover transition-transform duration-700 hover:scale-[1.02]" />
               )}
             </div>
-            <div className="px-5 sm:px-7 py-4 border-b md:border-b-0 border-borde">
-              <Link to="/servicios" className="inline-flex items-center gap-1.5 text-sm text-texto-suave hover:text-primario transition-colors group">
-                <ChevronLeft size={17} className="transition-transform duration-200 group-hover:-translate-x-0.5" />
-                <span>Volver a servicios</span>
-              </Link>
-            </div>
           </div>
 
-          {/* SECCIÓN 1: INFO + DESCRIPCIÓN */}
-          <div className="p-5 sm:p-7 md:p-9 lg:p-10 flex flex-col">
+          {/* SECCIÓN 1: INFO + DESCRIPCIÓN — MÁS COMPACTA ✅ */}
+          <div className="p-5 sm:p-6 md:p-8 lg:p-9 flex flex-col">
             
             {/* TÍTULO */}
-            <h1 className="text-2xl sm:text-3xl md:text-[32px] text-texto leading-tight mb-5">
+            <h1 className="text-2xl sm:text-3xl md:text-[32px] text-texto leading-tight mb-4">
               {servicio.titulo}
             </h1>
 
-            {/* PRECIOS — SIN LOGO PAYPAL, SIN SKU */}
+            {/* PRECIOS — SIN BADGE ARRIBA, TODO MÁS COMPACTO ✅ */}
             <div className="mb-5">
-              {servicio.descuentoPorcentaje && (
-                <span className="inline-flex items-center bg-red-700 text-white text-xs font-medium px-2.5 py-1 rounded-md mb-4">
-                  {servicio.descuentoPorcentaje}% OFF
-                </span>
-              )}
-
-              <div className="grid grid-cols-2 gap-5 sm:gap-8">
-                {/* MERCADO PAGO / ARS */}
+              <div className="grid grid-cols-2 gap-4 sm:gap-6 mb-4">
+                {/* ARS */}
                 <div>
-                  <div className="text-2xl sm:text-3xl font-medium text-primario leading-tight">
-                    $ {precioConDescuento.toLocaleString("es-AR")}
+                  <div className="text-2xl sm:text-3xl font-medium leading-tight">
+                    $ {formatearARS(precioConDescuento)}
                   </div>
-                  {servicio.descuentoPorcentaje && (
-                    <div className="mt-1 text-sm sm:text-base text-texto-suave line-through">
-                      $ {servicio.precioARS.toLocaleString("es-AR")}
+                  {descuentoBase > 0 && (
+                    <div className="mt-1 text-sm text-texto-suave line-through">
+                      $ {formatearARS(precioBase)}
                     </div>
                   )}
                 </div>
 
-                {/* PAYPAL / USD — SIN LOGO */}
+                {/* USD */}
                 {servicio.precioUSD && (
                   <div className="text-right">
                     <div className="text-xl sm:text-2xl font-medium text-texto">
                       $ {precioUSDConDescuento} <span className="text-sm text-texto-suave">USD</span>
                     </div>
-                    {servicio.descuentoPorcentaje && (
-                      <div className="text-sm sm:text-base text-texto-suave line-through">
+                    {descuentoBase > 0 && (
+                      <div className="text-sm text-texto-suave line-through">
                         $ {servicio.precioUSD} USD
                       </div>
                     )}
                   </div>
                 )}
               </div>
+
+              {/* 📋 OPCIÓN 1: 3 CUOTAS — CON ÍCONO + BADGE ✅ */}
+              <p className="flex items-center gap-2 text-sm text-[#009EE3] mb-2">
+                <CreditCard size={16} />
+                <span>{cuotas} cuotas sin interés de <strong>${formatearARS(valorCuota)}</strong></span>
+                {descuentoBase > 0 && (
+                  <span className="ml-auto bg-red-100 text-red-700 text-xs font-medium px-2 py-0.5 rounded-sm">
+                    {descuentoBase}% OFF
+                  </span>
+                )}
+              </p>
+
+              {/* 📋 OPCIÓN 2: 1 CUOTA — CON ÍCONO + BADGE DESCUENTO TOTAL ✅ */}
+              <p className="flex items-center gap-2 text-sm text-[#009EE3]">
+                <CreditCard size={16} />
+                <span>1 cuota sin interés de <strong>${formatearARS(precioUnaCuota)}</strong></span>
+                <span className="ml-auto bg-green-100 text-green-700 text-xs font-medium px-1 py-0.5 rounded-sm">
+                  {descuentoTotal.toFixed(0)}% OFF total
+                </span>
+              </p>
             </div>
 
-            {/* CUOTAS MERCADO PAGO */}
-            <div className="flex items-start gap-2 mb-7 text-sm text-[#009EE3]">
-              
-              <span>
-                Hasta {cuotas} cuotas sin interés de{" "}
-                <span className="font-medium">$ {valorCuota.toLocaleString("es-AR")} con link</span>
-              </span>
-            </div>
+            <div className="border-t border-borde mb-4" />
 
-            <div className="border-t border-borde mb-6" />
-
-            {/* DESCRIPCIÓN */}
-            <div className="mb-8">
-              <h2 className="text-base sm:text-lg text-texto mb-3">Sobre esta sesión</h2>
+            {/* DESCRIPCIÓN — MÁS COMPACTA ✅ */}
+            <div className="mb-6">
+              <h2 className="text-base text-texto mb-2">Sobre esta sesión</h2>
               <p
-                className={`text-sm sm:text-base text-texto-suave leading-7 whitespace-pre-line transition-all duration-300 ${
-                  descripcionAbierta ? "" : "line-clamp-4"
+                className={`text-sm text-texto-suave leading-relaxed whitespace-pre-line transition-all duration-300 ${
+                  descripcionAbierta ? "" : "line-clamp-3"
                 }`}
               >
                 {servicio.descripcion}
               </p>
-              {servicio.descripcion?.length > 180 && (
+              {servicio.descripcion?.length > 150 && (
                 <button
                   type="button"
                   onClick={() => setDescripcionAbierta(!descripcionAbierta)}
-                  className="mt-3 inline-flex items-center gap-1 text-sm text-primario hover:text-primario-oscuro transition-colors group"
+                  className="mt-2 inline-flex items-center gap-1 text-sm text-primario hover:text-primario-oscuro transition-colors"
                 >
                   <span>{descripcionAbierta ? "Ver menos" : "Ver más"}</span>
                   <ChevronRight
-                    size={15}
+                    size={14}
                     className={`transition-transform duration-200 ${descripcionAbierta ? "-rotate-90" : "rotate-90"}`}
                   />
                 </button>
               )}
             </div>
 
-            {/* SEPARADOR ENTRE SECCIONES */}
-            <div className="border-t border-borde mb-6" />
+            <div className="border-t border-borde mb-4" />
 
             {/* SECCIÓN 2: RESERVA — DESPLEGABLE */}
             <div className="mt-auto">
-              <h2 className="text-base sm:text-lg text-texto mb-4 flex items-center gap-2">
-                <CalendarDays size={18} className="text-primario" />
+              <h2 className="text-base text-texto mb-3 flex items-center gap-2">
+                <CalendarDays size={17} className="text-primario" />
                 Reserva tu sesión
               </h2>
 
-              {/* BOTÓN DESPLEGABLE */}
               <button
                 type="button"
                 onClick={() => setCalendarioAbierto(!calendarioAbierto)}
-                className="w-full flex items-center justify-between gap-3 py-3.5 px-4 border border-borde rounded-lg text-left hover:border-primario hover:bg-fondo transition-all duration-200 mb-4"
+                className="w-full flex items-center justify-between gap-3 py-3 px-4 border border-borde rounded-lg text-left hover:border-primario hover:bg-fondo transition-all duration-200 mb-3"
               >
-                <span className="font-medium text-texto">
+                <span className="font-medium text-texto text-sm">
                   {reserva
                     ? `${reserva.fecha} — ${reserva.hora}`
                     : "Seleccionar día y horario"}
                 </span>
                 <ChevronRight
-                  size={18}
+                  size={17}
                   className={`text-primario transition-transform duration-300 ${calendarioAbierto ? "rotate-90" : ""}`}
                 />
               </button>
 
-              {/* CALENDARIO DESPLEGABLE */}
               {calendarioAbierto && (
-                <div className="mb-6 p-4 bg-fondo rounded-lg border border-borde animate-fadeIn">
+                <div className="mb-4 p-3 bg-fondo rounded-lg border border-borde animate-fadeIn">
                   <CalendarioReservas
                     tipoSesion={servicio.tipoCalendario}
                     valor={reserva}
@@ -188,19 +195,18 @@ export default function DetalleServicio() {
                 </div>
               )}
 
-              {/* BOTÓN FINAL */}
               <button
                 id="boton-reservar"
                 type="button"
                 onClick={reservarAhora}
                 disabled={!reserva}
-                className={`w-full flex items-center justify-center gap-2.5 py-3.5 px-5 rounded-lg text-sm sm:text-base font-medium transition-all duration-200 ${
+                className={`w-full flex items-center justify-center gap-2 py-3 px-5 rounded-lg text-sm font-medium transition-all duration-200 ${
                   reserva
                     ? "bg-primario hover:bg-primario-oscuro active:scale-[0.99] text-white shadow-sm"
                     : "bg-gray-200 text-gray-400 cursor-not-allowed"
                 }`}
               >
-                <Calendar size={19} strokeWidth={1.8} />
+                <Calendar size={18} strokeWidth={1.8} />
                 {reserva ? "Confirmar reserva" : "Elegí un día y horario"}
               </button>
             </div>
