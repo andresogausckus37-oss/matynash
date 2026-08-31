@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState } from "react";
 import { Link, useNavigate, Navigate } from "react-router-dom";
 import { useCarrito } from "../context/CarritoContext";
 import {
@@ -65,33 +65,31 @@ export default function Checkout() {
   const referencia = obtenerDatosReferencia();
   const whatsapp = obtenerWhatsAppReferencia();
 
-  // 📌 REDIRIGIR SI CARRITO VACÍO
-  if (carrito.length === 0) {
-    return <Navigate to="/" replace />;
-  }
-
   // TOTALES CON DESCUENTO
-  const totalOriginalARS = useMemo(() => 
-    carrito.reduce((sum, item) => sum + item.precioARS, 0), 
-    [carrito]
-  );
-  
-  const totalFinalARS = useMemo(() => 
-    carrito.reduce((sum, item) => sum + calcularPrecioConDescuento(item), 0), 
-    [carrito]
-  );
-  
-  const totalOriginalUSD = useMemo(() => 
-    carrito.reduce((sum, item) => sum + Number(item.precioUSD || 0), 0), 
-    [carrito]
-  );
-  
-  const totalFinalUSD = useMemo(() => 
-    carrito.reduce((sum, item) => sum + calcularPrecioUSDConDescuento(item), 0), 
-    [carrito]
-  );
+  const totalOriginalARS = carrito.reduce(
+  (sum, item) => sum + item.precioARS,
+  0
+);
 
-    // ✅ DESCUENTOS — CALCULADOS CORRECTAMENTE
+const totalFinalARS = carrito.reduce(
+  (sum, item) =>
+    sum + calcularPrecioConDescuento(item),
+  0
+);
+
+const totalOriginalUSD = carrito.reduce(
+  (sum, item) =>
+    sum + Number(item.precioUSD || 0),
+  0
+);
+
+const totalFinalUSD = carrito.reduce(
+  (sum, item) =>
+    sum + calcularPrecioUSDConDescuento(item),
+  0
+);
+
+  // ✅ DESCUENTOS — CALCULADOS CORRECTAMENTE
   const descuentoBasePorcentaje = carrito.find(item => item.descuentoPorcentaje)?.descuentoPorcentaje || 0;
   const descuentoExtraPorcentaje = 10;
   // 🎯 Descuento total combinado (base + extra)
@@ -103,22 +101,24 @@ export default function Checkout() {
   const precioConDescuentoExtra = Math.round(totalFinalARS * (1 - descuentoExtraPorcentaje / 100));
 
   // CUOTAS
-  const cuotas = carrito[0]?.cuotasSinInteres || 3;
+  const primerItem = carrito[0] || {};
+const cuotas = primerItem.cuotasSinInteres || 3;
+  
   const valorCuota3 = Math.round(totalFinalARS / cuotas);
   const valorCuota1 = precioConDescuentoExtra;
 
   const descuentoGlobal = descuentoBasePorcentaje > 0;
   const primerDescuento = descuentoBasePorcentaje;
-  
 
   // VALIDACIONES
   const emailValido = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim());
   const formularioValido = nombre.trim().length >= 2 && emailValido && metodoPago;
 
-  // MENSAJE WHATSAPP — DIFERENCIADO POR OPCIÓN ✅
+  // ✅ MENSAJE WHATSAPP — INCLUYE PAYPAL CON TODA LA INFO
   const generarMensajeWhatsApp = () => {
     const servicios = carrito.map((item) => {
       const precioFinal = calcularPrecioConDescuento(item);
+      const precioUSD = calcularPrecioUSDConDescuento(item);
       const fecha = formatearFecha(item.reserva?.fecha);
       const hora = formatearHora(item.reserva?.hora);
 
@@ -127,6 +127,9 @@ export default function Checkout() {
       }
       if (metodoPago === "nacional-1") {
         return `Soy ${nombre.trim()} y quiero reservar la sesión de ${item.titulo} para el día ${fecha} a las ${hora}, con un valor de $${formatearARS(precioConDescuentoExtra)} en 1 pago\n\nEspero el link de pago para confirmar mi lugar. Gracias 🙏🌿`;
+      }
+      if (metodoPago === "paypal") {
+        return `Soy ${nombre.trim()} y quiero reservar la sesión de ${item.titulo} para el día ${fecha} a las ${hora}, con un valor de $${precioUSD} USD por PayPal\n\nAdjunto comprobante de pago. Espero la confirmación. Gracias 🙏🌿`;
       }
       return "";
     }).join("\n\n");
@@ -148,7 +151,7 @@ export default function Checkout() {
     if (!nombre.trim()) return alert("Ingresa tu nombre.");
     if (!emailValido) return alert("Ingresa un correo electrónico válido.");
     if (!metodoPago) return alert("Selecciona un método de pago.");
-    
+
     if (metodoPago === "nacional-3" || metodoPago === "nacional-1") {
       return abrirWhatsApp();
     }
@@ -157,11 +160,19 @@ export default function Checkout() {
     }
   };
 
+  // ==========================================
+// CARRITO VACÍO
+// ==========================================
+
+if (carrito.length === 0) {
+  return <Navigate to="/" replace />;
+}
+
   return (
     <main className="max-w-5xl mx-auto px-4 sm:px-6 py-6 sm:py-10">
       {/* VOLVER */}
       <Link
-        to="/servicios"
+        to="/"
         className="inline-flex items-center gap-1.5 text-sm text-primario hover:text-primario-oscuro transition-colors mb-6"
       >
         <ChevronLeft size={17} /> Volver a servicios
@@ -183,11 +194,13 @@ export default function Checkout() {
         <div className="space-y-6">
           <section className="bg-white rounded-md border border-borde shadow-suave overflow-hidden">
             {carrito.map((item) => (
-              <div key={item.id} className="p-5 sm:p-6">
+              <div key={item?.id} className="p-5 sm:p-6">
+                
                 <div className="flex gap-4 items-start">
                   <img
-                    src={item.imagenes?.[0]}
-                    alt={item.titulo}
+                    src={item?.imagenes?.[0] || ""}
+alt={item?.titulo || "Servicio"}
+
                     className="w-20 h-20 sm:w-24 sm:h-24 object-cover rounded-xl flex-shrink-0"
                   />
                   <div className="flex-1 min-w-0">
@@ -223,7 +236,7 @@ export default function Checkout() {
         <div className="bg-white rounded-xl shadow-suave p-5 sm:p-6 lg:sticky lg:top-24 border border-borde">
           <h2 className="text-sm font-medium text-texto mb-5">Tus datos</h2>
           <div className="space-y-4">
-            
+
             {/* NOMBRE */}
             <div className="relative">
               <User size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-texto-suave" />
@@ -255,12 +268,12 @@ export default function Checkout() {
             {/* MÉTODOS DE PAGO — SEPARADOS POR NACIONAL / INTERNACIONAL ✅ */}
             <div className="pt-2">
               <p className="block text-sm font-medium text-texto mb-3">Método de pago</p>
-              
+
               {/* 🏠 NACIONAL */}
               <div className="mb-4">
                 <p className="text-xs font-semibold text-texto-suave uppercase tracking-wider mb-2">Nacional con link de pago</p>
                 <div className="space-y-3">
-                  
+
                   {/* 3 CUOTAS */}
                   <label
                     className={`block p-1 rounded-lg border-2 cursor-pointer transition-all overflow-hidden focus:outline-none focus:ring-0 ${
@@ -307,7 +320,7 @@ export default function Checkout() {
                           )}
                         </div>
                         <p className="text-xs text-[#009EE3] font-medium">
-                         {cuotas} cuotas sin interés de ${formatearARS(valorCuota3)}
+                          {cuotas} cuotas sin interés de ${formatearARS(valorCuota3)}
                         </p>
                       </div>
                     </div>
@@ -351,8 +364,8 @@ export default function Checkout() {
                             ${formatearARS(precioConDescuentoExtra)}
                           </span>
                           <span className="bg-green-100 text-green-700 text-xs font-medium px-1.5 py-0.5 rounded-sm">
-  {descuentoTotalPorcentaje}% OFF total
-</span>
+                            {descuentoTotalPorcentaje}% OFF total
+                          </span>
                         </div>
                         <p className="text-xs text-[#009EE3] font-medium">
                           1 cuota sin interés de ${formatearARS(precioConDescuentoExtra)}
@@ -366,7 +379,7 @@ export default function Checkout() {
               {/* 🌍 INTERNACIONAL */}
               <div>
                 <p className="text-xs font-semibold text-texto-suave uppercase tracking-wider mb-2">Internacional</p>
-                
+
                 {/* PAYPAL */}
                 <label
                   className={`block p-1 rounded-lg border-2 cursor-pointer transition-all overflow-hidden focus:outline-none focus:ring-0 ${
@@ -421,7 +434,7 @@ export default function Checkout() {
               </div>
             </div>
 
-                        {/* BOTÓN FINAL */}
+            {/* BOTÓN FINAL */}
             <button
               type="submit"
               disabled={!formularioValido}
@@ -451,7 +464,7 @@ export default function Checkout() {
       {mostrarModalPayPal && (
         <div className="fixed inset-0 z-[100] bg-black/50 flex items-center justify-center p-4">
           <div className="relative bg-white w-full max-w-md max-h-[90vh] overflow-y-auto rounded-xl shadow-xl p-6">
-            <button
+                        <button
               type="button"
               onClick={() => setMostrarModalPayPal(false)}
               className="absolute top-4 right-4 text-texto-suave hover:text-texto focus:outline-none focus:ring-0 border-0"
@@ -509,3 +522,4 @@ export default function Checkout() {
     </main>
   );
 }
+

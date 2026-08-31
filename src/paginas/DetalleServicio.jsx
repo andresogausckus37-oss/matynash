@@ -4,6 +4,7 @@ import { SERVICIOS, CONFIG } from "../datos/servicios";
 import { ChevronLeft, ChevronRight, CreditCard, Calendar, CalendarDays } from "lucide-react";
 import { useCarrito } from "../context/CarritoContext";
 import CalendarioReservas from "../componentes/CalendarioReservas";
+import Reseña, { ResumenResenas } from "../componentes/Reseña"; // ✅ Importamos reseñas
 
 export default function DetalleServicio() {
   const [descripcionAbierta, setDescripcionAbierta] = useState(false);
@@ -27,8 +28,8 @@ export default function DetalleServicio() {
       <main className="max-w-2xl mx-auto px-4 py-20 text-center">
         <div className="bg-white border border-borde rounded-xl p-8 shadow-suave">
           <h2 className="text-2xl text-texto mb-4">Servicio no encontrado</h2>
-          <Link to="/servicios" className="inline-flex items-center gap-1 text-primario hover:text-primario-oscuro text-sm transition-colors">
-            <ChevronLeft size={17} /> Volver a servicios
+          <Link to="/" className="inline-flex items-center gap-1 text-primario hover:text-primario-oscuro text-sm transition-colors">
+            <ChevronLeft size={17} /> Volver
           </Link>
         </div>
       </main>
@@ -42,7 +43,7 @@ export default function DetalleServicio() {
     ? Math.round(precioBase * (1 - descuentoBase / 100))
     : precioBase;
 
-  // Descuento extra 10% para 1 cuota (igual que en Checkout)
+  // Descuento extra 10% para 1 cuota
   const descuentoExtra = 10;
   const precioUnaCuota = Math.round(precioConDescuento * (1 - descuentoExtra / 100));
   const descuentoTotal = descuentoBase + descuentoExtra - (descuentoBase * descuentoExtra / 100);
@@ -57,6 +58,8 @@ export default function DetalleServicio() {
     : servicio.precioUSD;
 
   const formatearARS = (valor) => Number(valor).toLocaleString("es-AR");
+
+  const tieneResenas = servicio.resenas && servicio.resenas.length > 0;
 
   return (
     <main className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 lg:py-10">
@@ -74,15 +77,22 @@ export default function DetalleServicio() {
             </div>
           </div>
 
-          {/* SECCIÓN 1: INFO + DESCRIPCIÓN — MÁS COMPACTA ✅ */}
+          {/* SECCIÓN 1: INFO + PRECIOS + DESCRIPCIÓN */}
           <div className="p-5 sm:p-6 md:p-8 lg:p-9 flex flex-col">
             
             {/* TÍTULO */}
-            <h1 className="text-2xl sm:text-3xl md:text-[32px] text-texto leading-tight mb-4">
+            <h1 className="text-2xl sm:text-3xl md:text-[32px] text-texto leading-tight mb-3">
               {servicio.titulo}
             </h1>
 
-            {/* PRECIOS — SIN BADGE ARRIBA, TODO MÁS COMPACTO ✅ */}
+            {/* ✅ RESEÑAS — Resumen arriba, justo debajo del título */}
+            {tieneResenas && (
+              <div className="mb-5">
+                <ResumenResenas resenas={servicio.resenas} />
+              </div>
+            )}
+
+            {/* PRECIOS */}
             <div className="mb-5">
               <div className="grid grid-cols-2 gap-4 sm:gap-6 mb-4">
                 {/* ARS */}
@@ -112,7 +122,7 @@ export default function DetalleServicio() {
                 )}
               </div>
 
-              {/* 📋 OPCIÓN 1: 3 CUOTAS — CON ÍCONO + BADGE ✅ */}
+              {/* 3 CUOTAS */}
               <p className="flex items-center gap-2 text-sm text-[#009EE3] mb-2">
                 <CreditCard size={16} />
                 <span>{cuotas} cuotas sin interés de <strong>${formatearARS(valorCuota)}</strong></span>
@@ -123,7 +133,7 @@ export default function DetalleServicio() {
                 )}
               </p>
 
-              {/* 📋 OPCIÓN 2: 1 CUOTA — CON ÍCONO + BADGE DESCUENTO TOTAL ✅ */}
+              {/* 1 CUOTA */}
               <p className="flex items-center gap-2 text-sm text-[#009EE3]">
                 <CreditCard size={16} />
                 <span>1 cuota sin interés de <strong>${formatearARS(precioUnaCuota)}</strong></span>
@@ -135,7 +145,7 @@ export default function DetalleServicio() {
 
             <div className="border-t border-borde mb-4" />
 
-            {/* DESCRIPCIÓN — MÁS COMPACTA ✅ */}
+            {/* DESCRIPCIÓN */}
             <div className="mb-6">
               <h2 className="text-base text-texto mb-2">Sobre esta sesión</h2>
               <p
@@ -162,7 +172,21 @@ export default function DetalleServicio() {
 
             <div className="border-t border-borde mb-4" />
 
-            {/* SECCIÓN 2: RESERVA — DESPLEGABLE */}
+            {/* ✅ SECCIÓN RESEÑAS COMPLETAS */}
+            {tieneResenas && (
+              <div className="mb-6">
+                <h2 className="text-base text-texto mb-4">Experiencias de personas</h2>
+                <div className="space-y-4">
+                  {servicio.resenas.map((resena, index) => (
+                    <Reseña key={index} resena={resena} modo="completo" />
+                  ))}
+                </div>
+              </div>
+            )}
+
+            <div className="border-t border-borde mb-4" />
+
+            {/* SECCIÓN RESERVA */}
             <div className="mt-auto">
               <h2 className="text-base text-texto mb-3 flex items-center gap-2">
                 <CalendarDays size={17} className="text-primario" />

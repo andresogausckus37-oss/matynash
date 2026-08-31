@@ -1,5 +1,6 @@
 import { Link } from "react-router-dom";
 import { ChevronRight } from "lucide-react";
+import { ResumenResenas } from "./Reseña"; // ✅ Importamos el resumen
 
 export default function TarjetaServicio({ servicio }) {
   return (
@@ -28,11 +29,7 @@ export default function TarjetaServicio({ servicio }) {
 
       {/* Contenido */}
       <div className="p-5 sm:p-6">
-
-        {/* SKU */}
-        <p className="text-xs text-texto-suave font-mono mb-2">
-          SKU: {servicio.sku}
-        </p>
+  
 
         {/* Título — Link al detalle */}
         <Link to={`/servicio/${servicio.id}`}>
@@ -41,8 +38,7 @@ export default function TarjetaServicio({ servicio }) {
             sm:text-xl
             text-texto
             leading-snug
-            mb-3
-            hover:text-primario
+            mb-3            hover:text-primario
             transition-colors
           ">
             {servicio.titulo}
@@ -55,12 +51,19 @@ export default function TarjetaServicio({ servicio }) {
           leading-relaxed
           text-texto-suave
           line-clamp-3
-          mb-6
+          mb-4
         ">
           {servicio.descripcion}
         </p>
 
-        {/* ✅ SOLO BOTÓN — Más información */}
+        {/* ✅ RESEÑAS — Promedio + cantidad, justo arriba del botón */}
+        {servicio.resenas && servicio.resenas.length > 0 && (
+          <div className="mb-4">
+            <ResumenResenas resenas={servicio.resenas} />
+          </div>
+        )}
+
+        {/* ✅ BOTÓN — Más información */}
         <Link
           to={`/servicio/${servicio.id}`}
           className="
@@ -70,7 +73,7 @@ export default function TarjetaServicio({ servicio }) {
             justify-center
             gap-1.5
             bg-[#C5EEA8]
-                hover:bg-[#A8E080]
+            hover:bg-[#A8E080]
             text-white
             py-3
             px-2

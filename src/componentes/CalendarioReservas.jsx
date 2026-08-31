@@ -214,7 +214,7 @@ export default function CalendarioReservas({
           <div>
             
 
-            <p className="text-md sm:text-sm text-texto-suave -mt-5">
+            <p className="text-gl sm:text-sm font-semibold -mt-5">
               {sesion.nombre} · {sesion.duracion} min
             </p>
           </div>

@@ -1,4 +1,5 @@
 import PerfilTerapeuta from "../componentes/PerfilTerapeuta";
+import WebinarHome from "../componentes/WebinarHome";
 import TarjetaServicio from "../componentes/TarjetaServicio";
 import { SERVICIOS } from "../datos/servicios";
 
@@ -11,13 +12,18 @@ export default function Inicio() {
         <PerfilTerapeuta />
       </section>
 
-      {/* EXPERIENCIAS */}
-      <section className="py-4">
+      {/* WEBINAR */}
+      <section className="mb-16 sm:mb-20">
+        <WebinarHome />
+      </section>
+
+      {/* ✅ EXPERIENCIAS — Acá va el id para el scroll */}
+      <section id="servicios" className="py-4">
 
         {/* ENCABEZADO */}
         <div className="mb-8">
           <h2 className="text-2xl md:text-3xl text-texto mb-2">
-            Experiencias Maty Nash
+            Experiencias con Maty Nash
           </h2>
         </div>
 

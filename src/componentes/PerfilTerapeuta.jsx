@@ -1,4 +1,5 @@
 import { CONFIG } from "../datos/servicios";
+import { ChevronDown } from "lucide-react";
 import {
   FaInstagram,
   FaFacebookF,
@@ -9,37 +10,48 @@ import {
 export default function PerfilTerapeuta() {
   const { terapeuta } = CONFIG;
 
-  // WhatsApp
+  // WhatsApp — Mensaje personalizado
   const mensajeWhatsApp = encodeURIComponent(
     "Hola Maty!\n\nVengo de matynash.com y quisiera hacerte una consulta. Gracias 😊"
   );
-
-  const whatsappLink = `https://wa.me/5493548619293?text=${mensajeWhatsApp}`;
+  const whatsappLink = `https://wa.me/${terapeuta.whatsapp}?text=${mensajeWhatsApp}`;
 
   // Video de Cloudinary
   const videoCloudinaryUrl = terapeuta.videoBannerUrl || "";
 
-  // Redes sociales
+  // 👇 SCROLL a Servicios
+  const scrollAServicios = () => {
+    const seccionServicios = document.getElementById("servicios");
+    if (seccionServicios) {
+      seccionServicios.scrollIntoView({ behavior: "smooth" });
+    }
+  };
+
+  // Redes sociales — CON COLORES OFICIALES ✅
   const redes = [
     {
       nombre: "Instagram",
       url: terapeuta.instagram,
       icono: <FaInstagram />,
+      colorIcono: "#E4405F", // 🔴 Rosa/morado oficial Instagram
     },
     {
       nombre: "TikTok",
       url: terapeuta.tiktok,
       icono: <FaTiktok />,
+      colorIcono: "#000000", // ⚫ Negro oficial TikTok
     },
     {
       nombre: "Facebook",
       url: terapeuta.facebook,
       icono: <FaFacebookF />,
+      colorIcono: "#1877F2", // 🔵 Azul oficial Facebook
     },
     {
       nombre: "WhatsApp",
       url: whatsappLink,
       icono: <FaWhatsapp />,
+      colorIcono: "#25D366", // 🟢 Verde oficial WhatsApp
     },
   ];
 
@@ -56,9 +68,10 @@ export default function PerfilTerapeuta() {
           <video
             src={videoCloudinaryUrl}
             autoPlay
-            
-            
+            muted={false}
+            loop
             playsInline
+            controls
             preload="metadata"
             aria-label={`Video de presentación de ${terapeuta.nombre}`}
             className="
@@ -87,6 +100,32 @@ export default function PerfilTerapeuta() {
         )}
       </section>
 
+      {/* ✅ BOTÓN — Fuera del video, centrado */}
+      <div className="flex justify-center py-6 md:py-8 bg-white">
+        <button
+          onClick={scrollAServicios}
+          className="
+            flex
+            items-center
+            gap-2
+            bg-primario
+            text-white
+            px-8
+            py-3
+            rounded-full
+            text-sm
+            font-medium
+            shadow-sm
+            hover:bg-primario-oscuro
+            transition-all
+            duration-200
+          "
+        >
+          Ver experiencias
+          <ChevronDown size={18} />
+        </button>
+      </div>
+
       {/* =========================
           INFORMACIÓN
       ========================== */}
@@ -98,9 +137,8 @@ export default function PerfilTerapeuta() {
             px-5
             sm:px-6
             md:px-8
-            pt-7
+            pt-0
             pb-10
-            md:pt-8
             md:pb-14
           "
         >
@@ -139,20 +177,9 @@ export default function PerfilTerapeuta() {
             </div>
           )}
 
-          {/* Separador */}
-          <div
-            className="
-              w-16
-              sm:w-20
-              h-px
-              mx-auto
-              my-8
-              sm:my-10
-              bg-primario-claro
-            "
-          />
+          
 
-          {/* Redes sociales */}
+          {/* Redes sociales — Fondo armonizado + colores oficiales ✅ */}
           <div className="flex flex-col items-center">
             <p
               className="
@@ -196,15 +223,12 @@ export default function PerfilTerapeuta() {
                         sm:w-12
                         sm:h-12
                         rounded-full
-                        bg-blanco
-                        border
-                        border-borde
+                        bg-primario/10
                         text-texto
                         shadow-sm
                         transition-all
                         duration-200
-                        hover:border-primario
-                        hover:text-primario
+                        hover:bg-primario/20
                         hover:-translate-y-0.5
                         active:scale-95
                         focus:outline-none
@@ -212,6 +236,7 @@ export default function PerfilTerapeuta() {
                         focus:ring-primario
                         focus:ring-offset-2
                       "
+                      style={{ color: red.colorIcono }}
                     >
                       <span className="text-[19px] sm:text-[20px]">
                         {red.icono}
