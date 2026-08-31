@@ -28,7 +28,7 @@ export const WEBINAR = {
 
 
   whatsappGrupo:
-    "PEGA_ACA_EL_LINK_DEL_GRUPO_DE_WHATSAPP",
+    "https://chat.whatsapp.com/FsaySJUAu7k5W8AwZH731e?s=cl&p=a&mlu=4",
 
   // Si después querés agregar una imagen:
   imagen: "",
