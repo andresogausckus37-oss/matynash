@@ -8,7 +8,7 @@ export const CONFIG = {
     fotoPerfil: "https://via.placeholder.com/150",
     fotoPortada: "https://i.postimg.cc/KzSm1TYC/IMG-20260825-WA0001.jpg",
     videoBannerUrl: "https://res.cloudinary.com/jqtldbag/video/upload/VID-20260828-WA0013.mp4",
-    whatsapp: "5493548619293",
+    whatsapp: "5493518039490",
     instagram: "https://www.instagram.com/maty.nash",
     tiktok: "https://www.tiktok.com/@matynash?_r=1&_t=ZS-99Boint7LVP",
     facebook: "https://www.facebook.com/share/1HRi1dCmEQ/?mibextid=wwXIfr",
